@@ -1,0 +1,1758 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Music trend (Genre multi-select + Decade comparison)</title>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+
+<style>
+:root { --ink: #e8edf7; }
+body { 
+  margin:0; 
+  background:#4E69C3; 
+  color:var(--ink); 
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  overflow:hidden;
+}
+
+/* aspect ratio wrapper */
+.aspect-wrapper {
+  position: fixed;
+  left: 0; top: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.boombox {
+  position: relative;
+  width: min(100vw, 100vh * (1285 / 755));
+  height: calc(min(100vw, 100vh * (1285 / 755)) * (755 / 1285));
+  overflow: hidden;
+  background: #4E69C3;
+}
+
+
+.region {
+  position: absolute;
+  z-index: 2;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+}
+
+
+/* Center screen */
+#center-rect { 
+  left: 25%; 
+  top: 35%; 
+  width: 50%; 
+  height: 60%; 
+  background: #2D2C5E; 
+  border-radius: 6px; 
+}
+#center-rect svg { width: 100%; height: 100%; display: block; }
+
+/* Speaker circles */
+#left-circle, #right-circle { 
+  width: 20%; 
+  aspect-ratio: 1 / 1; 
+  border-radius: 50%; 
+  background: #2D2C5E; 
+}
+#left-circle  { left: 3%;  top: 60%; transform: translateY(-20%); }
+#right-circle { right: 3%; top: 60%; transform: translateY(-20%); }
+
+.circle-card {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  padding: 0;             
+  text-align: center;
+  position: relative;      
+  overflow: hidden;
+}
+
+
+/* left content */
+#leftContent { width: 95%; color:#e8edf7; font-size: 10px; }
+#leftContent h4 { font-size: 10px; }
+
+/* right content */
+#rightContent { width: 88%; color:#e8edf7; font-size: 13px; }
+#rightContent h4 { margin: 4px 0 8px; font-size: 16px; }
+
+.tiny { font-size: 11px; opacity: .85; }
+
+/* Genre multi-select */
+.ctl-row { display:flex; align-items:center; justify-content:center; gap:6px; margin: 6px 0 8px; flex-wrap:wrap; }
+.pill {
+  font-size: 10px;
+  padding:4px 8px;
+  border-radius: 999px;
+  border:1px solid rgba(255,255,255,.25);
+  background:#4c5fa0;
+  color:#f4f6ff;
+  cursor:pointer;
+}
+.pill:hover { background:#6f82c8; }
+
+.genre-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; max-height: 64%; overflow:auto; padding-right:4px; }
+.genre-item { display:flex; align-items:center; gap:6px; }
+.swatch { width: 10px; height:10px; border-radius:2px; display:inline-block; }
+.empty-note { font-size: 12px; opacity:.9; text-align:center; margin-top: 8px; }
+
+/* Feature slider */
+.slider-container { position: relative; height: 28px; margin: 10px 0 2px; }
+
+/* Tooltip */
+.tooltip {
+  position: absolute;
+  background: rgba(7,12,28,0.95);
+  color: #e8edf7;
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 6px 8px;
+  font-size: 13px;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  z-index: 9999;
+}
+
+/* Decade picker */
+.picker{ display:grid; gap:12px; width:100%; }
+.picker h4{
+  margin:2px 0 4px;
+  font-size:14px;
+  text-align:center;
+  opacity:.95;
+}
+.picker .grid-2{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:10px;
+}
+
+/* Chart text */
+#center-rect svg text {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.chart-title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  fill: #f9fafb;
+}
+
+.x-axis-label,
+.y-axis-label {
+  font-size: 12px;
+  fill: #cbd5f5;
+  opacity: 0.9;
+}
+
+#center-rect svg g.tick text {
+  font-size: 11px;
+  fill: #9ca9d9;
+}
+
+#center-rect svg .domain,
+#center-rect svg .tick line {
+  stroke: #1f2a4d;
+  stroke-width: 1;
+}
+
+</style>
+</head>
+
+<body>
+  <div class="aspect-wrapper">
+    <div class="boombox">
+
+      <svg id="boombox-bg" viewBox="0 0 1500 800" preserveAspectRatio="xMidYMid meet" 
+          style="width:100%; height:100%; position:absolute; top:0; left:0; z-index:0;">
+        <!-- SVG background -->
+        <rect x="142" y="29" width="1205" height="172" rx="30" fill="none" stroke="#2D2C5E" stroke-width="10"/>
+        <rect x="11" y="172" width="1468" height="657" rx="20" fill="#3D4B91"/>
+        <rect x="10" y="153" width="1468" height="104" rx="15" fill="#2D2C5E"/>
+
+        <text x="400" y="215" fill="#e8edf7" font-size="30">Music Data Explorer: Top 10 Songs per Year 1980–2020</text>
+
+        <rect id="btn-genre"        data-view="genre"        x="202"  y="102" width="129" height="51" rx="10" fill="#58508D"/>
+        <rect id="btn-tempo"        data-view="tempo"        x="364"  y="102" width="129" height="51" rx="10" fill="#8A508F"/>
+        <rect id="btn-danceability" data-view="danceability" x="526"  y="102" width="129" height="51" rx="10" fill="#BC5090"/>
+        <rect id="btn-energy"       data-view="energy"       x="689"  y="102" width="129" height="53" rx="10" fill="#DE5A79"/>
+        <rect id="btn-acousticness" data-view="acousticness" x="853"  y="102" width="129" height="53" rx="10" fill="#FF6361"/>
+        <rect id="btn-duration"     data-view="duration_ms"  x="1015" y="102" width="129" height="53" rx="10" fill="#FF8531"/>
+        <rect id="btn-decade"       data-view="decade"       x="1178" y="102" width="129" height="51" rx="10" fill="#FFA600"/>
+
+        <text x="237"  y="135" fill="#e8edf7" font-size="14">Genre</text>
+        <text x="399"  y="135" fill="#e8edf7" font-size="14">Tempo</text>
+        <text x="551"  y="135" fill="#e8edf7" font-size="14">Danceability</text>
+        <text x="724"  y="135" fill="#e8edf7" font-size="14">Energy</text>
+        <text x="873"  y="135" fill="#e8edf7" font-size="14">Acousticness</text>
+        <text x="1050" y="135" fill="#e8edf7" font-size="14">Duration</text>
+        <text x="1188" y="135" fill="#e8edf7" font-size="12">Decade Comparison</text>
+      </svg>
+
+      <div id="center-rect" class="region">
+        <svg id="mainChart" viewBox="0 0 900 560" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+
+      <div id="left-circle" class="region">
+      <div class="circle-card">
+        <div class="circle-content-wrapper">
+          <div id="leftContent"></div>
+        </div>
+      </div>
+    </div>
+
+
+      <div id="right-circle" class="region">
+        <div class="circle-card"><div id="rightContent"></div></div>
+      </div>
+
+      <div class="tooltip" id="tooltip"></div>
+    </div>
+  </div>
+
+<script>
+
+// ------------------ DATA ------------------
+const audioData = [
+  {year:1980,danceability:0.620,energy:0.571,tempo:103.130,acousticness:0.356,duration_ms:207390},
+  {year:1981,danceability:0.630,energy:0.649,tempo:123.569,acousticness:0.304,duration_ms:227191},
+  {year:1982,danceability:0.668,energy:0.629,tempo:120.588,acousticness:0.141,duration_ms:235502},
+  {year:1983,danceability:0.697,energy:0.593,tempo:122.858,acousticness:0.139,duration_ms:252009},
+  {year:1984,danceability:0.651,energy:0.691,tempo:116.194,acousticness:0.176,duration_ms:249788},
+  {year:1985,danceability:0.663,energy:0.656,tempo:107.884,acousticness:0.173,duration_ms:279528},
+  {year:1986,danceability:0.625,energy:0.570,tempo:112.360,acousticness:0.209,duration_ms:272095},
+  {year:1987,danceability:0.625,energy:0.792,tempo:108.949,acousticness:0.226,duration_ms:263893},
+  {year:1988,danceability:0.622,energy:0.705,tempo:121.720,acousticness:0.227,duration_ms:260760},
+  {year:1989,danceability:0.679,energy:0.668,tempo:110.760,acousticness:0.271,duration_ms:253647},
+  {year:1990,danceability:0.649,energy:0.606,tempo:115.785,acousticness:0.286,duration_ms:277173},
+  {year:1991,danceability:0.621,energy:0.555,tempo:115.620,acousticness:0.196,duration_ms:273140},
+  {year:1992,danceability:0.707,energy:0.568,tempo:113.428,acousticness:0.175,duration_ms:270712},
+  {year:1993,danceability:0.706,energy:0.566,tempo:109.532,acousticness:0.253,duration_ms:269637},
+  {year:1994,danceability:0.640,energy:0.562,tempo:113.855,acousticness:0.249,duration_ms:243978},
+  {year:1995,danceability:0.687,energy:0.570,tempo:120.888,acousticness:0.230,duration_ms:270767},
+  {year:1996,danceability:0.643,energy:0.479,tempo:129.628,acousticness:0.432,duration_ms:262663},
+  {year:1997,danceability:0.706,energy:0.622,tempo:105.768,acousticness:0.167,duration_ms:258585},
+  {year:1998,danceability:0.641,energy:0.499,tempo:131.300,acousticness:0.214,duration_ms:273190},
+  {year:1999,danceability:0.654,energy:0.655,tempo:123.767,acousticness:0.181,duration_ms:231018},
+  {year:2000,danceability:0.645,energy:0.649,tempo:112.342,acousticness:0.159,duration_ms:260767},
+  {year:2001,danceability:0.632,energy:0.693,tempo:99.549,acousticness:0.172,duration_ms:232442},
+  {year:2002,danceability:0.655,energy:0.731,tempo:122.503,acousticness:0.120,duration_ms:245053},
+  {year:2003,danceability:0.651,energy:0.759,tempo:95.572,acousticness:0.142,duration_ms:226088},
+  {year:2004,danceability:0.738,energy:0.684,tempo:103.611,acousticness:0.158,duration_ms:230300},
+  {year:2005,danceability:0.713,energy:0.650,tempo:121.201,acousticness:0.142,duration_ms:220696},
+  {year:2006,danceability:0.778,energy:0.698,tempo:123.144,acousticness:0.191,duration_ms:232418},
+  {year:2007,danceability:0.631,energy:0.679,tempo:138.635,acousticness:0.238,duration_ms:237920},
+  {year:2008,danceability:0.690,energy:0.561,tempo:112.681,acousticness:0.309,duration_ms:231876},
+  {year:2009,danceability:0.713,energy:0.693,tempo:128.154,acousticness:0.128,duration_ms:224747},
+  {year:2010,danceability:0.707,energy:0.826,tempo:109.248,acousticness:0.121,duration_ms:238075},
+  {year:2011,danceability:0.689,energy:0.771,tempo:121.964,acousticness:0.124,duration_ms:224520},
+  {year:2012,danceability:0.682,energy:0.707,tempo:128.416,acousticness:0.094,duration_ms:217835},
+  {year:2013,danceability:0.597,energy:0.684,tempo:123.647,acousticness:0.187,duration_ms:253207},
+  {year:2014,danceability:0.630,energy:0.656,tempo:124.885,acousticness:0.240,duration_ms:219400},
+  {year:2015,danceability:0.723,energy:0.669,tempo:111.208,acousticness:0.161,duration_ms:227923},
+  {year:2016,danceability:0.654,energy:0.632,tempo:130.298,acousticness:0.187,duration_ms:227330},
+  {year:2017,danceability:0.769,energy:0.666,tempo:126.141,acousticness:0.184,duration_ms:225174},
+  {year:2018,danceability:0.709,energy:0.664,tempo:120.574,acousticness:0.084,duration_ms:216595},
+  {year:2019,danceability:0.778,energy:0.576,tempo:127.334,acousticness:0.217,duration_ms:209586},
+  {year:2020,danceability:0.705,energy:0.626,tempo:116.776,acousticness:0.253,duration_ms:200920}
+];
+
+const genreMini = [
+  { year: "1980", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 1, "Pop Ballad": 1, "Pop Rap": 0, "Pop Rock": 3, "R&B": 1, Rap: 0, Rock: 4 },
+  { year: "1981", "Country Pop": 2,  "Hip Hop": 0, "Latin Pop": 0, Pop: 0, "Pop Ballad": 1, "Pop Rap": 0, "Pop Rock": 6, "R&B": 1, Rap: 0, Rock: 0 },
+  { year: "1982", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 2, "Pop Ballad": 0, "Pop Rap": 0, "Pop Rock": 5, "R&B": 1, Rap: 0, Rock: 2 },
+  { year: "1983", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 4, "Pop Ballad": 1, "Pop Rap": 0, "Pop Rock": 4, "R&B": 0, Rap: 0, Rock: 1 },
+  { year: "1984", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 3, "Pop Ballad": 0, "Pop Rap": 0, "Pop Rock": 2, "R&B": 3, Rap: 0, Rock: 2 },
+  { year: "1985", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 3, "Pop Ballad": 1, "Pop Rap": 0, "Pop Rock": 3, "R&B": 2, Rap: 0, Rock: 1 },
+  { year: "1986", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 3, "Pop Ballad": 1, "Pop Rap": 0, "Pop Rock": 3, "R&B": 2, Rap: 0, Rock: 1 },
+  { year: "1987", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 3, "Pop Ballad": 0, "Pop Rap": 0, "Pop Rock": 4, "R&B": 0, Rap: 0, Rock: 3 },
+  { year: "1988", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 4, "Pop Ballad": 1, "Pop Rap": 0, "Pop Rock": 3, "R&B": 0, Rap: 0, Rock: 2 },
+  { year: "1989", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 5, "Pop Ballad": 1, "Pop Rap": 0, "Pop Rock": 2, "R&B": 1, Rap: 0, Rock: 1 },
+  { year: "1990", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 2, "Pop Ballad": 2, "Pop Rap": 0, "Pop Rock": 2, "R&B": 2, Rap: 0, Rock: 2 },
+  { year: "1991", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 4, "Pop Ballad": 2, "Pop Rap": 0, "Pop Rock": 1, "R&B": 2, Rap: 0, Rock: 1 },
+  { year: "1992", "Country Pop": 0,  "Hip Hop": 2, "Latin Pop": 0, Pop: 1, "Pop Ballad": 2, "Pop Rap": 0, "Pop Rock": 0, "R&B": 4, Rap: 0, Rock: 1 },
+  { year: "1993", "Country Pop": 0,  "Hip Hop": 2, "Latin Pop": 0, Pop: 2, "Pop Ballad": 1, "Pop Rap": 0, "Pop Rock": 0, "R&B": 5, Rap: 0, Rock: 0 },
+  { year: "1994", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 3, "Pop Ballad": 3, "Pop Rap": 0, "Pop Rock": 2, "R&B": 2, Rap: 0, Rock: 0 },
+  { year: "1995", "Country Pop": 0,  "Hip Hop": 1, "Latin Pop": 0, Pop: 5, "Pop Ballad": 0, "Pop Rap": 0, "Pop Rock": 0, "R&B": 4, Rap: 0, Rock: 0 },
+  { year: "1996", "Country Pop": 0,  "Hip Hop": 1, "Latin Pop": 1, Pop: 3, "Pop Ballad": 1, "Pop Rap": 0, "Pop Rock": 1, "R&B": 3, Rap: 0, Rock: 0 },
+  { year: "1997", "Country Pop": 1,  "Hip Hop": 2, "Latin Pop": 0, Pop: 2, "Pop Ballad": 4, "Pop Rap": 0, "Pop Rock": 0, "R&B": 1, Rap: 0, Rock: 0 },
+  { year: "1998", "Country Pop": 2,  "Hip Hop": 0, "Latin Pop": 0, Pop: 2, "Pop Ballad": 2, "Pop Rap": 0, "Pop Rock": 1, "R&B": 3, Rap: 0, Rock: 0 },
+  { year: "1999", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 1, Pop: 5, "Pop Ballad": 3, "Pop Rap": 0, "Pop Rock": 1, "R&B": 0, Rap: 0, Rock: 0 },
+  { year: "2000", "Country Pop": 2,  "Hip Hop": 0, "Latin Pop": 2, Pop: 2, "Pop Ballad": 1, "Pop Rap": 0, "Pop Rock": 2, "R&B": 1, Rap: 0, Rock: 0 },
+  { year: "2001", "Country Pop": 0,  "Hip Hop": 2, "Latin Pop": 0, Pop: 3, "Pop Ballad": 0, "Pop Rap": 0, "Pop Rock": 3, "R&B": 1, Rap: 0, Rock: 1 },
+  { year: "2002", "Country Pop": 0,  "Hip Hop": 2, "Latin Pop": 0, Pop: 1, "Pop Ballad": 0, "Pop Rap": 0, "Pop Rock": 1, "R&B": 3, Rap: 0, Rock: 3 },
+  { year: "2003", "Country Pop": 0,  "Hip Hop": 1, "Latin Pop": 0, Pop: 3, "Pop Ballad": 0, "Pop Rap": 0, "Pop Rock": 2, "R&B": 1, Rap: 1, Rock: 2 },
+  { year: "2004", "Country Pop": 0,  "Hip Hop": 3, "Latin Pop": 0, Pop: 3, "Pop Ballad": 0, "Pop Rap": 0, "Pop Rock": 1, "R&B": 3, Rap: 0, Rock: 0 },
+  { year: "2005", "Country Pop": 0,  "Hip Hop": 1, "Latin Pop": 0, Pop: 2, "Pop Ballad": 1, "Pop Rap": 0, "Pop Rock": 2, "R&B": 2, Rap: 1, Rock: 1 },
+  { year: "2006", "Country Pop": 0,  "Hip Hop": 4, "Latin Pop": 1, Pop: 3, "Pop Ballad": 1, "Pop Rap": 0, "Pop Rock": 0, "R&B": 1, Rap: 0, Rock: 0 },
+  { year: "2007", "Country Pop": 1,  "Hip Hop": 3, "Latin Pop": 0, Pop: 6, "Pop Ballad": 0, "Pop Rap": 0, "Pop Rock": 0, "R&B": 0, Rap: 0, Rock: 0 },
+  { year: "2008", "Country Pop": 0,  "Hip Hop": 2, "Latin Pop": 0, Pop: 0, "Pop Ballad": 3, "Pop Rap": 0, "Pop Rock": 1, "R&B": 4, Rap: 0, Rock: 0 },
+  { year: "2009", "Country Pop": 1,  "Hip Hop": 2, "Latin Pop": 0, Pop: 5, "Pop Ballad": 0, "Pop Rap": 0, "Pop Rock": 1, "R&B": 0, Rap: 1, Rock: 0 },
+  { year: "2010", "Country Pop": 1,  "Hip Hop": 0, "Latin Pop": 0, Pop: 7, "Pop Ballad": 0, "Pop Rap": 2, "Pop Rock": 0, "R&B": 0, Rap: 0, Rock: 0 },
+  { year: "2011", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 7, "Pop Ballad": 1, "Pop Rap": 1, "Pop Rock": 0, "R&B": 1, Rap: 0, Rock: 0 },
+  { year: "2012", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 9, "Pop Ballad": 0, "Pop Rap": 1, "Pop Rock": 0, "R&B": 0, Rap: 0, Rock: 0 },
+  { year: "2013", "Country Pop": 0,  "Hip Hop": 1, "Latin Pop": 0, Pop: 3, "Pop Ballad": 2, "Pop Rap": 3, "Pop Rock": 1, "R&B": 0, Rap: 0, Rock: 0 },
+  { year: "2014", "Country Pop": 0,  "Hip Hop": 1, "Latin Pop": 0, Pop: 4, "Pop Ballad": 2, "Pop Rap": 2, "Pop Rock": 1, "R&B": 0, Rap: 0, Rock: 0 },
+  { year: "2015", "Country Pop": 0,  "Hip Hop": 3, "Latin Pop": 0, Pop: 3, "Pop Ballad": 2, "Pop Rap": 0, "Pop Rock": 1, "R&B": 1, Rap: 0, Rock: 0 },
+  { year: "2016", "Country Pop": 0,  "Hip Hop": 1, "Latin Pop": 0, Pop: 7, "Pop Ballad": 1, "Pop Rap": 0, "Pop Rock": 1, "R&B": 0, Rap: 0, Rock: 0 },
+  { year: "2017", "Country Pop": 1,  "Hip Hop": 1, "Latin Pop": 1, Pop: 3, "Pop Ballad": 0, "Pop Rap": 1, "Pop Rock": 1, "R&B": 0, Rap: 2, Rock: 0 },
+  { year: "2018", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 1, Pop: 3, "Pop Ballad": 1, "Pop Rap": 4, "Pop Rock": 0, "R&B": 0, Rap: 1, Rock: 0 },
+  { year: "2019", "Country Pop": 0,  "Hip Hop": 0, "Latin Pop": 0, Pop: 6, "Pop Ballad": 0, "Pop Rap": 3, "Pop Rock": 0, "R&B": 0, Rap: 1, Rock: 0 },
+  { year: "2020", "Country Pop": 1,  "Hip Hop": 0, "Latin Pop": 0, Pop: 5, "Pop Ballad": 1, "Pop Rap": 2, "Pop Rock": 0, "R&B": 0, Rap: 1, Rock: 0 }
+];
+
+
+
+
+const songsByYearData = {
+  "1980": [
+    {"year":1980,"rank":1,"track_name":"Call Me","artist_name":"Blondie","danceability":0.554,"acousticness":0.000646,"energy":0.833,"tempo":142.673,"duration_ms":212227},
+    {"year":1980,"rank":2,"track_name":"Another Brick in the Wall, Part II","artist_name":"Pink Floyd","danceability":0.693,"acousticness":0.0782,"energy":0.394,"tempo":104.114,"duration_ms":238747},
+    {"year":1980,"rank":3,"track_name":"Magic","artist_name":"Olivia Newton-John","danceability":0.7,"acousticness":0.123,"energy":0.504,"tempo":103.88,"duration_ms":269307},
+    {"year":1980,"rank":4,"track_name":"Rock with You","artist_name":"Michael Jackson","danceability":0.808,"acousticness":0.179,"energy":0.535,"tempo":114.031,"duration_ms":220627},
+    {"year":1980,"rank":5,"track_name":"Do That to Me One More Time","artist_name":"Captain & Tennille","danceability":0.599,"acousticness":0.714,"energy":0.762,"tempo":76.961,"duration_ms":163373},
+    {"year":1980,"rank":6,"track_name":"Crazy Little Thing Called Love","artist_name":"Queen","danceability":0.599,"acousticness":0.714,"energy":0.762,"tempo":76.961,"duration_ms":163373},
+    {"year":1980,"rank":7,"track_name":"Coming Up","artist_name":"Paul McCartney","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1980,"rank":8,"track_name":"Funkytown","artist_name":"Lipps Inc.","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1980,"rank":9,"track_name":"It's Still Rock and Roll to Me","artist_name":"Billy Joel","danceability":0.752,"acousticness":0.0994,"energy":0.684,"tempo":141.075,"duration_ms":176440},
+    {"year":1980,"rank":10,"track_name":"The Rose","artist_name":"Bette Midler","danceability":0.258,"acousticness":0.94,"energy":0.0971,"tempo":65.346,"duration_ms":215027}
+  ],
+  "1981": [
+    {"year":1981,"rank":1,"track_name":"Bette Davis Eyes","artist_name":"Kim Carnes","danceability":0.675,"acousticness":0.0204,"energy":0.649,"tempo":116.624,"duration_ms":228000},
+    {"year":1981,"rank":2,"track_name":"Endless Love","artist_name":"Diana Ross & Lionel Richie","danceability":0.456,"acousticness":0.665,"energy":0.332,"tempo":93.633,"duration_ms":266267},
+    {"year":1981,"rank":3,"track_name":"Lady","artist_name":"Kenny Rogers","danceability":0.488,"acousticness":0.747,"energy":0.232,"tempo":140.173,"duration_ms":231040},
+    {"year":1981,"rank":4,"track_name":"(Just Like) Starting Over","artist_name":"John Lennon","danceability":0.701,"acousticness":0.301,"energy":0.79,"tempo":99.104,"duration_ms":236547},
+    {"year":1981,"rank":5,"track_name":"Jessie's Girl","artist_name":"Rick Springfield","danceability":0.727,"acousticness":0.164,"energy":0.832,"tempo":131.703,"duration_ms":194120},
+    {"year":1981,"rank":6,"track_name":"Celebration","artist_name":"Kool & the Gang","danceability":0.885,"acousticness":0.146,"energy":0.664,"tempo":121.633,"duration_ms":298867},
+    {"year":1981,"rank":7,"track_name":"Kiss on My List","artist_name":"Daryl Hall & John Oates","danceability":0.815,"acousticness":0.434,"energy":0.741,"tempo":121.221,"duration_ms":264987},
+    {"year":1981,"rank":8,"track_name":"I Love a Rainy Night","artist_name":"Eddie Rabbitt","danceability":0.689,"acousticness":0.0978,"energy":0.742,"tempo":131.474,"duration_ms":189320},
+    {"year":1981,"rank":9,"track_name":"9 To 5","artist_name":"Dolly Parton","danceability":0.554,"acousticness":0.416,"energy":0.783,"tempo":105.39,"duration_ms":162467},
+    {"year":1981,"rank":10,"track_name":"Keep on Loving You","artist_name":"REO Speedwagon","danceability":0.306,"acousticness":0.0519,"energy":0.722,"tempo":174.732,"duration_ms":200293}
+  ],
+  "1982": [
+    {"year":1982,"rank":1,"track_name":"Physical","artist_name":"Olivia Newton-John","danceability":0.834,"acousticness":0.0631,"energy":0.633,"tempo":123.815,"duration_ms":224773},
+    {"year":1982,"rank":2,"track_name":"Eye of the Tiger","artist_name":"Survivor","danceability":0.817,"acousticness":0.132,"energy":0.599,"tempo":108.873,"duration_ms":245640},
+    {"year":1982,"rank":3,"track_name":"I Love Rock 'n Roll","artist_name":"Joan Jett & The Blackhearts","danceability":0.535,"acousticness":0.326,"energy":0.716,"tempo":94.379,"duration_ms":175173},
+    {"year":1982,"rank":4,"track_name":"Ebony and Ivory","artist_name":"Paul McCartney and Stevie Wonder","danceability":0.567,"acousticness":0.0784,"energy":0.692,"tempo":160.697,"duration_ms":226267},
+    {"year":1982,"rank":5,"track_name":"Centerfold","artist_name":"The J. Geils B and ","danceability":0.653,"acousticness":0.249,"energy":0.677,"tempo":114.37,"duration_ms":216533},
+    {"year":1982,"rank":6,"track_name":"Don't You Want Me","artist_name":"The Human League","danceability":0.731,"acousticness":0.184,"energy":0.738,"tempo":117.656,"duration_ms":236920},
+    {"year":1982,"rank":7,"track_name":"Jack & Diane","artist_name":"John Cougar","danceability":0.811,"acousticness":0.0365,"energy":0.41,"tempo":103.94,"duration_ms":254493},
+    {"year":1982,"rank":8,"track_name":"Hurts So Good","artist_name":"John Cougar","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1982,"rank":9,"track_name":"Abracadabra","artist_name":"Steve Miller B and ","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1982,"rank":10,"track_name":"Hard to Say I'm Sorry","artist_name":"Chicago","danceability":0.398,"acousticness":0.056,"energy":0.57,"tempo":140.974,"duration_ms":304213}
+  ],
+  "1983": [
+    {"year":1983,"rank":1,"track_name":"Every Breath You Take","artist_name":"The Police","danceability":0.82,"acousticness":0.543,"energy":0.452,"tempo":117.401,"duration_ms":253920},
+    {"year":1983,"rank":2,"track_name":"Billie Jean","artist_name":"Michael Jackson","danceability":0.932,"acousticness":0.0173,"energy":0.457,"tempo":117.002,"duration_ms":294227},
+    {"year":1983,"rank":3,"track_name":"Flashdance... What a Feeling","artist_name":"Irene Cara","danceability":0.572,"acousticness":0.00579,"energy":0.655,"tempo":122.49,"duration_ms":237053},
+    {"year":1983,"rank":4,"track_name":"Down Under","artist_name":"Men at Work","danceability":0.739,"acousticness":0.129,"energy":0.459,"tempo":107.115,"duration_ms":222320},
+    {"year":1983,"rank":5,"track_name":"Beat It","artist_name":"Michael Jackson","danceability":0.776,"acousticness":0.0242,"energy":0.711,"tempo":138.728,"duration_ms":258400},
+    {"year":1983,"rank":6,"track_name":"Total Eclipse of the Heart","artist_name":"Bonnie Tyler","danceability":0.435,"acousticness":0.195,"energy":0.658,"tempo":130.276,"duration_ms":269787},
+    {"year":1983,"rank":7,"track_name":"Maneater","artist_name":"Daryl Hall & John Oates","danceability":0.687,"acousticness":0.0234,"energy":0.697,"tempo":88.714,"duration_ms":270733},
+    {"year":1983,"rank":8,"track_name":"Baby, Come to Me","artist_name":"Patti Austin and James Ingram","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1983,"rank":9,"track_name":"Maniac","artist_name":"Michael Sembello","danceability":0.617,"acousticness":0.0891,"energy":0.533,"tempo":158.86,"duration_ms":244707},
+    {"year":1983,"rank":10,"track_name":"Sweet Dreams (Are Made of This)","artist_name":"Eurythmics","danceability":0.692,"acousticness":0.225,"energy":0.711,"tempo":125.135,"duration_ms":216933}
+  ],
+  "1984": [
+    {"year":1984,"rank":1,"track_name":"When Doves Cry","artist_name":"Prince","danceability":0.729,"acousticness":0.0102,"energy":0.989,"tempo":126.47,"duration_ms":352906},
+    {"year":1984,"rank":2,"track_name":"What's Love Got to Do with It","artist_name":"Tina Turner","danceability":0.75,"acousticness":0.275,"energy":0.664,"tempo":105.023,"duration_ms":208156},
+    {"year":1984,"rank":3,"track_name":"Say, Say, Say","artist_name":"Paul McCartney and Michael Jackson","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1984,"rank":4,"track_name":"Footloose","artist_name":"Kenny Loggins","danceability":0.546,"acousticness":0.0819,"energy":0.895,"tempo":174.089,"duration_ms":220707},
+    {"year":1984,"rank":5,"track_name":"Against All Odds (Take a Look at Me Now)","artist_name":"Phil Collins","danceability":0.581,"acousticness":0.198,"energy":0.498,"tempo":116.262,"duration_ms":206360},
+    {"year":1984,"rank":6,"track_name":"Jump","artist_name":"Van Halen","danceability":0.572,"acousticness":0.171,"energy":0.835,"tempo":129.994,"duration_ms":241600},
+    {"year":1984,"rank":7,"track_name":"Hello","artist_name":"Lionel Richie","danceability":0.487,"acousticness":0.414,"energy":0.246,"tempo":61.084,"duration_ms":251107},
+    {"year":1984,"rank":8,"track_name":"Owner of a Lonely Heart","artist_name":"Yes","danceability":0.744,"acousticness":0.175,"energy":0.798,"tempo":125.061,"duration_ms":268507},
+    {"year":1984,"rank":9,"track_name":"Ghostbusters","artist_name":"Ray Parker Jr.","danceability":0.782,"acousticness":0.0307,"energy":0.567,"tempo":115.71,"duration_ms":245973},
+    {"year":1984,"rank":10,"track_name":"Karma Chameleon","artist_name":"Culture Club","danceability":0.668,"acousticness":0.225,"energy":0.73,"tempo":92.049,"duration_ms":252773}
+  ],
+  "1985": [
+    {"year":1985,"rank":1,"track_name":"Careless Whisper","artist_name":"Wham!","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1985,"rank":2,"track_name":"Like a Virgin","artist_name":"Madonna","danceability":0.773,"acousticness":0.202,"energy":0.656,"tempo":119.754,"duration_ms":218627},
+    {"year":1985,"rank":3,"track_name":"Wake Me Up Before You Go-Go","artist_name":"Wham!","danceability":0.62,"acousticness":0.271,"energy":0.573,"tempo":81.548,"duration_ms":231333},
+    {"year":1985,"rank":4,"track_name":"I Want to Know What Love Is","artist_name":"Foreigner","danceability":0.477,"acousticness":0.193,"energy":0.471,"tempo":81.204,"duration_ms":304787},
+    {"year":1985,"rank":5,"track_name":"I Feel for You","artist_name":"Chaka Khan","danceability":0.698,"acousticness":0.0145,"energy":0.912,"tempo":124.916,"duration_ms":343400},
+    {"year":1985,"rank":6,"track_name":"Out of Touch","artist_name":"Daryl Hall & John Oates","danceability":0.806,"acousticness":0.0391,"energy":0.649,"tempo":114.834,"duration_ms":249573},
+    {"year":1985,"rank":7,"track_name":"Everybody Wants to Rule the World","artist_name":"Tears for Fears","danceability":0.645,"acousticness":0.347,"energy":0.795,"tempo":112.067,"duration_ms":251489},
+    {"year":1985,"rank":8,"track_name":"Money for Nothing","artist_name":"Dire Straits","danceability":0.667,"acousticness":0.0491,"energy":0.655,"tempo":134.212,"duration_ms":506400},
+    {"year":1985,"rank":9,"track_name":"Crazy for You","artist_name":"Madonna","danceability":0.704,"acousticness":0.422,"energy":0.288,"tempo":118.013,"duration_ms":184867},
+    {"year":1985,"rank":10,"track_name":"Take On Me","artist_name":"a-ha","danceability":0.573,"acousticness":0.018,"energy":0.902,"tempo":84.412,"duration_ms":225280}
+  ],
+  "1986": [
+    {"year":1986,"rank":1,"track_name":"That's What Friends Are For","artist_name":"Dionne and Friends (Dionne Warwick,Gladys Knight,Elton John and Stevie Wonder)","danceability":0.673,"acousticness":0.294,"energy":0.286,"tempo":120.117,"duration_ms":256467},
+    {"year":1986,"rank":2,"track_name":"Say You, Say Me","artist_name":"Lionel Richie","danceability":0.636,"acousticness":0.355,"energy":0.405,"tempo":128.068,"duration_ms":241067},
+    {"year":1986,"rank":3,"track_name":"I Miss You","artist_name":"Klymaxx","danceability":0.655,"acousticness":0.00103,"energy":0.781,"tempo":110.024,"duration_ms":227240},
+    {"year":1986,"rank":4,"track_name":"On My Own","artist_name":"Patti LaBelle and Michael McDonald","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1986,"rank":5,"track_name":"Broken Wings","artist_name":"Mr. Mister","danceability":0.286,"acousticness":0.134,"energy":0.5,"tempo":99.162,"duration_ms":343933},
+    {"year":1986,"rank":6,"track_name":"How Will I Know","artist_name":"Whitney Houston","danceability":0.832,"acousticness":0.201,"energy":0.544,"tempo":119.49,"duration_ms":275533},
+    {"year":1986,"rank":7,"track_name":"Party All the Time","artist_name":"Eddie Murphy","danceability":0.699,"acousticness":0.0098,"energy":0.696,"tempo":135.027,"duration_ms":253293},
+    {"year":1986,"rank":8,"track_name":"Burning Heart","artist_name":"Survivor","danceability":0.651,"acousticness":0.221,"energy":0.665,"tempo":97.996,"duration_ms":230720},
+    {"year":1986,"rank":9,"track_name":"Kyrie","artist_name":"Mr. Mister","danceability":0.489,"acousticness":0.287,"energy":0.676,"tempo":89.735,"duration_ms":256960},
+    {"year":1986,"rank":10,"track_name":"Addicted to Love","artist_name":"Robert Palmer","danceability":0.702,"acousticness":0.382,"energy":0.578,"tempo":111.617,"duration_ms":363640}
+  ],
+  "1987": [
+    {"year":1987,"rank":1,"track_name":"Walk Like An Egyptian","artist_name":"The Bangles","danceability":0.724,"acousticness":0.00344,"energy":0.891,"tempo":103.022,"duration_ms":204707},
+    {"year":1987,"rank":2,"track_name":"Alone","artist_name":"Heart","danceability":0.631,"acousticness":0.0241,"energy":0.953,"tempo":141.99,"duration_ms":273803},
+    {"year":1987,"rank":3,"track_name":"Shake You Down","artist_name":"Gregory Abbott","danceability":0.787,"acousticness":0.523,"energy":0.474,"tempo":94.995,"duration_ms":245413},
+    {"year":1987,"rank":4,"track_name":"I Wanna Dance with Somebody (Who Loves Me)","artist_name":"Whitney Houston","danceability":0.709,"acousticness":0.207,"energy":0.824,"tempo":118.818,"duration_ms":291293},
+    {"year":1987,"rank":5,"track_name":"Nothing's Gonna Stop Us Now","artist_name":"Starship","danceability":0.643,"acousticness":0.0298,"energy":0.801,"tempo":95.988,"duration_ms":270333},
+    {"year":1987,"rank":6,"track_name":"C'est La Vie","artist_name":"Robbie Nevil","danceability":0.726,"acousticness":0.559,"energy":0.809,"tempo":102.123,"duration_ms":270307},
+    {"year":1987,"rank":7,"track_name":"Here I Go Again","artist_name":"Whitesnake","danceability":0.292,"acousticness":0.0117,"energy":0.823,"tempo":89.939,"duration_ms":275395},
+    {"year":1987,"rank":8,"track_name":"The Way It Is","artist_name":"Bruce Hornsby and the Range","danceability":0.582,"acousticness":0.607,"energy":0.689,"tempo":111.166,"duration_ms":297853},
+    {"year":1987,"rank":9,"track_name":"Shakedown","artist_name":"Bob Seger","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1987,"rank":10,"track_name":"Livin' on a Prayer","artist_name":"Bon Jovi","danceability":0.534,"acousticness":0.0687,"energy":0.865,"tempo":122.497,"duration_ms":245933}
+  ],
+  "1988": [
+    {"year":1988,"rank":1,"track_name":"Faith","artist_name":"George Michael","danceability":0.393,"acousticness":0.263,"energy":0.547,"tempo":129.677,"duration_ms":266267},
+    {"year":1988,"rank":2,"track_name":"Need You Tonight","artist_name":"INXS","danceability":0.801,"acousticness":0.0713,"energy":0.723,"tempo":109.03,"duration_ms":180518},
+    {"year":1988,"rank":3,"track_name":"Got My Mind Set on You","artist_name":"George Harrison","danceability":0.767,"acousticness":0.465,"energy":0.854,"tempo":149.206,"duration_ms":234653},
+    {"year":1988,"rank":4,"track_name":"Never Gonna Give You Up","artist_name":"Rick Astley","danceability":0.72,"acousticness":0.114,"energy":0.987,"tempo":113.335,"duration_ms":213147},
+    {"year":1988,"rank":5,"track_name":"Sweet Child o' Mine","artist_name":"Guns N' Roses","danceability":0.445,"acousticness":0.09,"energy":0.952,"tempo":125.304,"duration_ms":356067},
+    {"year":1988,"rank":6,"track_name":"So Emotional","artist_name":"Whitney Houston","danceability":0.698,"acousticness":0.271,"energy":0.791,"tempo":119.081,"duration_ms":276667},
+    {"year":1988,"rank":7,"track_name":"Heaven Is a Place on Earth","artist_name":"Belinda Carlisle","danceability":0.64,"acousticness":0.031,"energy":0.81,"tempo":122.868,"duration_ms":247293},
+    {"year":1988,"rank":8,"track_name":"Could've Been","artist_name":"Tiffany","danceability":0.45,"acousticness":0.649,"energy":0.352,"tempo":102.679,"duration_ms":252747},
+    {"year":1988,"rank":9,"track_name":"Hands to Heaven","artist_name":"Breathe","danceability":0.543,"acousticness":0.242,"energy":0.384,"tempo":128.768,"duration_ms":259507},
+    {"year":1988,"rank":10,"track_name":"Roll with It","artist_name":"Steve Winwood","danceability":0.759,"acousticness":0.07,"energy":0.645,"tempo":117.254,"duration_ms":320733}
+  ],
+  "1989": [
+    {"year":1989,"rank":1,"track_name":"Look Away","artist_name":"Chicago","danceability":0.553,"acousticness":0.385,"energy":0.545,"tempo":85.959,"duration_ms":242960},
+    {"year":1989,"rank":2,"track_name":"My Prerogative","artist_name":"Bobby Brown","danceability":0.753,"acousticness":0.0657,"energy":0.62,"tempo":110.172,"duration_ms":291560},
+    {"year":1989,"rank":3,"track_name":"Every Rose Has Its Thorn","artist_name":"Poison","danceability":0.533,"acousticness":0.16,"energy":0.637,"tempo":140.167,"duration_ms":260173},
+    {"year":1989,"rank":4,"track_name":"Straight Up","artist_name":"Paula Abdul","danceability":0.769,"acousticness":0.267,"energy":0.826,"tempo":95.862,"duration_ms":251467},
+    {"year":1989,"rank":5,"track_name":"Miss You Much","artist_name":"Janet Jackson","danceability":0.702,"acousticness":0.0305,"energy":0.975,"tempo":115.185,"duration_ms":252333},
+    {"year":1989,"rank":6,"track_name":"Cold Hearted","artist_name":"Paula Abdul","danceability":0.879,"acousticness":0.149,"energy":0.679,"tempo":122.38,"duration_ms":231400},
+    {"year":1989,"rank":7,"track_name":"Wind Beneath My Wings","artist_name":"Bette Midler","danceability":0.51,"acousticness":0.551,"energy":0.458,"tempo":123.694,"duration_ms":293853},
+    {"year":1989,"rank":8,"track_name":"Girl You Know It's True","artist_name":"Milli Vanilli","danceability":0.772,"acousticness":0.00797,"energy":0.822,"tempo":97.718,"duration_ms":198573},
+    {"year":1989,"rank":9,"track_name":"Baby, I Love Your Way/Freebird Medley","artist_name":"Will to Power","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1989,"rank":10,"track_name":"Giving You the Best That I Got","artist_name":"Anita Baker","danceability":0.644,"acousticness":0.819,"energy":0.447,"tempo":105.699,"duration_ms":260507}
+  ],
+  "1990": [
+    {"year":1990,"rank":1,"track_name":"Hold On","artist_name":"Wilson Phillips","danceability":0.679,"acousticness":0.4,"energy":0.657,"tempo":97.8,"duration_ms":266867},
+    {"year":1990,"rank":2,"track_name":"It Must Have Been Love","artist_name":"Roxette","danceability":0.52,"acousticness":0.34,"energy":0.652,"tempo":80.609,"duration_ms":258787},
+    {"year":1990,"rank":3,"track_name":"Nothing Compares 2 U","artist_name":"Sinéad O'Connor","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1990,"rank":4,"track_name":"Poison","artist_name":"Bell Biv DeVoe","danceability":0.84,"acousticness":0.00195,"energy":0.56,"tempo":111.815,"duration_ms":261853},
+    {"year":1990,"rank":5,"track_name":"Vogue","artist_name":"Madonna","danceability":0.737,"acousticness":0.00379,"energy":0.88,"tempo":115.998,"duration_ms":316813},
+    {"year":1990,"rank":6,"track_name":"Vision of Love","artist_name":"Mariah Carey","danceability":0.256,"acousticness":0.433,"energy":0.464,"tempo":205.362,"duration_ms":209293},
+    {"year":1990,"rank":7,"track_name":"Another Day in Paradise","artist_name":"Phil Collins","danceability":0.78,"acousticness":0.736,"energy":0.565,"tempo":101.967,"duration_ms":322133},
+    {"year":1990,"rank":8,"track_name":"Hold On","artist_name":"En Vogue","danceability":0.728,"acousticness":0.0865,"energy":0.464,"tempo":96.944,"duration_ms":304467},
+    {"year":1990,"rank":9,"track_name":"Cradle of Love","artist_name":"Billy Idol","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1990,"rank":10,"track_name":"Blaze of Glory","artist_name":"Jon Bon Jovi","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null}
+  ],
+  "1991": [
+    {"year":1991,"rank":1,"track_name":"(Everything I Do) I Do It for You","artist_name":"Bryan Adams","danceability":0.526,"acousticness":0.0775,"energy":0.365,"tempo":131.253,"duration_ms":394133},
+    {"year":1991,"rank":2,"track_name":"I Wanna Sex You Up","artist_name":"Color Me Badd","danceability":0.553,"acousticness":0.00532,"energy":0.702,"tempo":201.868,"duration_ms":240200},
+    {"year":1991,"rank":3,"track_name":"Gonna Make You Sweat (Everybody Dance Now)","artist_name":"C+C Music Factory","danceability":0.557,"acousticness":0.0018,"energy":0.74,"tempo":114.379,"duration_ms":243693},
+    {"year":1991,"rank":4,"track_name":"Rush Rush","artist_name":"Paula Abdul","danceability":0.706,"acousticness":0.763,"energy":0.44,"tempo":90.012,"duration_ms":292933},
+    {"year":1991,"rank":5,"track_name":"One More Try","artist_name":"Timmy T","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1991,"rank":6,"track_name":"Unbelievable","artist_name":"EMF","danceability":0.637,"acousticness":0.000341,"energy":0.849,"tempo":104.074,"duration_ms":209813},
+    {"year":1991,"rank":7,"track_name":"More Than Words","artist_name":"Extreme","danceability":0.626,"acousticness":0.467,"energy":0.134,"tempo":91.893,"duration_ms":334107},
+    {"year":1991,"rank":8,"track_name":"I Like the Way (The Kissing Game)","artist_name":"Hi-Five","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1991,"rank":9,"track_name":"The First Time","artist_name":"Surface","danceability":0.637,"acousticness":0.215,"energy":0.354,"tempo":126.435,"duration_ms":256000},
+    {"year":1991,"rank":10,"track_name":"Baby Baby","artist_name":"Amy Grant","danceability":0.728,"acousticness":0.0401,"energy":0.859,"tempo":65.043,"duration_ms":214240}
+  ],
+  "1992": [
+    {"year":1992,"rank":1,"track_name":"End of the Road","artist_name":"Boyz II Men","danceability":0.641,"acousticness":0.0666,"energy":0.428,"tempo":149.705,"duration_ms":351467},
+    {"year":1992,"rank":2,"track_name":"Baby Got Back","artist_name":"Sir Mix-a-Lot","danceability":0.932,"acousticness":0.00595,"energy":0.76,"tempo":128.492,"duration_ms":261933},
+    {"year":1992,"rank":3,"track_name":"Jump","artist_name":"Kris Kross","danceability":0.749,"acousticness":0.000501,"energy":0.745,"tempo":101.972,"duration_ms":195107},
+    {"year":1992,"rank":4,"track_name":"Save the Best for Last","artist_name":"Vanessa Williams","danceability":0.528,"acousticness":0.641,"energy":0.234,"tempo":95.911,"duration_ms":218733},
+    {"year":1992,"rank":5,"track_name":"Baby-Baby-Baby","artist_name":"TLC","danceability":0.679,"acousticness":0.0913,"energy":0.597,"tempo":184.174,"duration_ms":315040},
+    {"year":1992,"rank":6,"track_name":"Tears in Heaven","artist_name":"Eric Clapton","danceability":0.695,"acousticness":0.8,"energy":0.336,"tempo":79.109,"duration_ms":280000},
+    {"year":1992,"rank":7,"track_name":"My Lovin' (You're Never Gonna Get It)","artist_name":"En Vogue","danceability":0.767,"acousticness":0.0318,"energy":0.839,"tempo":98.055,"duration_ms":281613},
+    {"year":1992,"rank":8,"track_name":"Under the Bridge","artist_name":"Red Hot Chili Peppers","danceability":0.559,"acousticness":0.0576,"energy":0.345,"tempo":84.581,"duration_ms":264307},
+    {"year":1992,"rank":9,"track_name":"All 4 Love","artist_name":"Color Me Badd","danceability":0.807,"acousticness":0.0347,"energy":0.75,"tempo":106.389,"duration_ms":211493},
+    {"year":1992,"rank":10,"track_name":"Just Another Day","artist_name":"Jon Secada","danceability":0.717,"acousticness":0.0194,"energy":0.642,"tempo":105.894,"duration_ms":327427}
+  ],
+  "1993": [
+    {"year":1993,"rank":1,"track_name":"I Will Always Love You","artist_name":"Whitney Houston","danceability":0.306,"acousticness":0.844,"energy":0.214,"tempo":66.98,"duration_ms":271093},
+    {"year":1993,"rank":2,"track_name":"Whoomp! (There It Is)","artist_name":"Tag Team","danceability":0.8,"acousticness":0.00123,"energy":0.639,"tempo":129.443,"duration_ms":226027},
+    {"year":1993,"rank":3,"track_name":"Can't Help Falling in Love","artist_name":"UB40","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1993,"rank":4,"track_name":"That's the Way Love Goes","artist_name":"Janet Jackson","danceability":0.703,"acousticness":0.302,"energy":0.7,"tempo":97.675,"duration_ms":265107},
+    {"year":1993,"rank":5,"track_name":"Freak Me","artist_name":"Silk","danceability":0.697,"acousticness":0.0295,"energy":0.608,"tempo":133.879,"duration_ms":274533},
+    {"year":1993,"rank":6,"track_name":"Weak","artist_name":"SWV","danceability":0.693,"acousticness":0.107,"energy":0.533,"tempo":127.661,"duration_ms":291907},
+    {"year":1993,"rank":7,"track_name":"If I Ever Fall in Love","artist_name":"Shai","danceability":0.67,"acousticness":0.638,"energy":0.326,"tempo":128.015,"duration_ms":299479},
+    {"year":1993,"rank":8,"track_name":"Dreamlover","artist_name":"Mariah Carey","danceability":0.701,"acousticness":0.18,"energy":0.705,"tempo":100.669,"duration_ms":232960},
+    {"year":1993,"rank":9,"track_name":"Rump Shaker","artist_name":"Wreckx-n-Effect","danceability":0.888,"acousticness":0.0025,"energy":0.822,"tempo":102.753,"duration_ms":312360},
+    {"year":1993,"rank":10,"track_name":"Informer","artist_name":"Snow","danceability":0.895,"acousticness":0.174,"energy":0.551,"tempo":98.71,"duration_ms":253267}
+  ],
+  "1994": [
+    {"year":1994,"rank":1,"track_name":"The Sign","artist_name":"Ace of Base","danceability":0.808,"acousticness":0.00928,"energy":0.786,"tempo":96.987,"duration_ms":191240},
+    {"year":1994,"rank":2,"track_name":"I Swear","artist_name":"All-4-One","danceability":0.532,"acousticness":0.235,"energy":0.407,"tempo":83.207,"duration_ms":259853},
+    {"year":1994,"rank":3,"track_name":"I'll Make Love to You","artist_name":"Boyz II Men","danceability":0.567,"acousticness":0.0995,"energy":0.501,"tempo":142.589,"duration_ms":236773},
+    {"year":1994,"rank":4,"track_name":"The Power of Love","artist_name":"Celine Dion","danceability":0.546,"acousticness":0.36,"energy":0.519,"tempo":140.054,"duration_ms":342400},
+    {"year":1994,"rank":5,"track_name":"Hero","artist_name":"Mariah Carey","danceability":0.501,"acousticness":0.735,"energy":0.378,"tempo":119.987,"duration_ms":257733},
+    {"year":1994,"rank":6,"track_name":"Stay (I Missed You)","artist_name":"Lisa Loeb and Nine Stories","danceability":0.676,"acousticness":0.479,"energy":0.605,"tempo":80.33,"duration_ms":183440},
+    {"year":1994,"rank":7,"track_name":"Breathe Again","artist_name":"Toni Braxton","danceability":0.689,"acousticness":0.0704,"energy":0.677,"tempo":153.919,"duration_ms":269173},
+    {"year":1994,"rank":8,"track_name":"All for Love","artist_name":"Bryan Adams,Rod Stewart and Sting","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1994,"rank":9,"track_name":"All That She Wants","artist_name":"Ace of Base","danceability":0.798,"acousticness":0.00547,"energy":0.625,"tempo":93.764,"duration_ms":211213}
+  ],
+  "1995": [
+    {"year":1995,"rank":1,"track_name":"Gangsta's Paradise","artist_name":"Coolio and L.V.","danceability":0.635,"acousticness":0.0665,"energy":0.586,"tempo":79.993,"duration_ms":241013},
+    {"year":1995,"rank":2,"track_name":"Waterfalls","artist_name":"TLC","danceability":0.77,"acousticness":0.311,"energy":0.505,"tempo":171.798,"duration_ms":279507},
+    {"year":1995,"rank":4,"track_name":"Kiss from a Rose","artist_name":"Seal","danceability":0.583,"acousticness":0.684,"energy":0.532,"tempo":131.741,"duration_ms":288427},
+    {"year":1995,"rank":5,"track_name":"On Bended Knee","artist_name":"Boyz II Men","danceability":0.631,"acousticness":0.413,"energy":0.516,"tempo":116.654,"duration_ms":329800},
+    {"year":1995,"rank":6,"track_name":"Another Night","artist_name":"Real McCoy","danceability":0.813,"acousticness":0.0908,"energy":0.882,"tempo":125.983,"duration_ms":236933},
+    {"year":1995,"rank":7,"track_name":"Fantasy","artist_name":"Mariah Carey","danceability":0.669,"acousticness":0.139,"energy":0.727,"tempo":102.322,"duration_ms":243493},
+    {"year":1995,"rank":8,"track_name":"Take a Bow","artist_name":"Madonna","danceability":0.549,"acousticness":0.341,"energy":0.408,"tempo":80.133,"duration_ms":320467},
+    {"year":1995,"rank":9,"track_name":"Don't Take It Personal (Just One of Dem Days)","artist_name":"Monica","danceability":0.731,"acousticness":0.00864,"energy":0.355,"tempo":175.72,"duration_ms":258467},
+    {"year":1995,"rank":10,"track_name":"This Is How We Do It","artist_name":"Montell Jordan","danceability":0.799,"acousticness":0.0141,"energy":0.623,"tempo":103.649,"duration_ms":238800}
+  ],
+  "1996": [
+    {"year":1996,"rank":1,"track_name":"Macarena(Bayside Boys Mix)","artist_name":"Los del Río","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1996,"rank":2,"track_name":"One Sweet Day","artist_name":"Mariah Carey and Boyz II Men","danceability":0.568,"acousticness":0.353,"energy":0.495,"tempo":128.234,"duration_ms":281067},
+    {"year":1996,"rank":3,"track_name":"Because You Loved Me","artist_name":"Celine Dion","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1996,"rank":4,"track_name":"Nobody Knows","artist_name":"The Tony Rich Project","danceability":0.64,"acousticness":0.509,"energy":0.433,"tempo":176.086,"duration_ms":306933},
+    {"year":1996,"rank":5,"track_name":"Always Be My Baby","artist_name":"Mariah Carey","danceability":0.65,"acousticness":0.457,"energy":0.531,"tempo":78.946,"duration_ms":258133},
+    {"year":1996,"rank":6,"track_name":"Give Me One Reason","artist_name":"Tracy Chapman","danceability":0.608,"acousticness":0.602,"energy":0.419,"tempo":100.22,"duration_ms":268333},
+    {"year":1996,"rank":7,"track_name":"Tha Crossroads","artist_name":"Bone Thugs-n-Harmony","danceability":0.679,"acousticness":0.0856,"energy":0.509,"tempo":144.29,"duration_ms":223547},
+    {"year":1996,"rank":8,"track_name":"I Love You Always Forever","artist_name":"Donna Lewis","danceability":0.744,"acousticness":0.627,"energy":0.453,"tempo":103.773,"duration_ms":239960},
+    {"year":1996,"rank":9,"track_name":"You're Makin' Me High\" / \"Let It Flow","artist_name":"Toni Braxton","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1996,"rank":10,"track_name":"Twisted","artist_name":"Keith Sweat","danceability":0.615,"acousticness":0.393,"energy":0.514,"tempo":175.849,"duration_ms":260667}
+  ],
+  "1997": [
+    {"year":1997,"rank":1,"track_name":"Candle in the Wind 1997\" / \"Something About the Way You Look Tonight","artist_name":"Elton John","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1997,"rank":2,"track_name":"You Were Meant for Me\" / \"Foolish Games","artist_name":"Jewel","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1997,"rank":3,"track_name":"I'll Be Missing You","artist_name":"Puff Daddy and Faith Evans and 112","danceability":0.862,"acousticness":0.0522,"energy":0.479,"tempo":109.878,"duration_ms":301520},
+    {"year":1997,"rank":4,"track_name":"Un-Break My Heart","artist_name":"Toni Braxton","danceability":0.625,"acousticness":0.413,"energy":0.426,"tempo":110.018,"duration_ms":270333},
+    {"year":1997,"rank":5,"track_name":"Can't Nobody Hold Me Down","artist_name":"Puff Daddy and Mase","danceability":0.928,"acousticness":0.102,"energy":0.771,"tempo":93.987,"duration_ms":231160},
+    {"year":1997,"rank":6,"track_name":"I Believe I Can Fly","artist_name":"R. Kelly","danceability":0.55,"acousticness":0.241,"energy":0.444,"tempo":120.179,"duration_ms":320667},
+    {"year":1997,"rank":7,"track_name":"Don't Let Go (Love)","artist_name":"En Vogue","danceability":0.626,"acousticness":0.295,"energy":0.693,"tempo":78.284,"duration_ms":291907},
+    {"year":1997,"rank":8,"track_name":"Return of the Mack","artist_name":"Mark Morrison","danceability":0.715,"acousticness":0.00631,"energy":0.833,"tempo":95.487,"duration_ms":213093},
+    {"year":1997,"rank":9,"track_name":"How Do I Live","artist_name":"LeAnn Rimes","danceability":0.577,"acousticness":0.128,"energy":0.462,"tempo":128.303,"duration_ms":266973},
+    {"year":1997,"rank":10,"track_name":"Wannabe","artist_name":"Spice Girls","danceability":0.768,"acousticness":0.101,"energy":0.864,"tempo":110.009,"duration_ms":173027}
+  ],
+  "1998": [
+    {"year":1998,"rank":1,"track_name":"Too Close","artist_name":"Next","danceability":0.847,"acousticness":0.0118,"energy":0.402,"tempo":99.693,"duration_ms":259440},
+    {"year":1998,"rank":2,"track_name":"The Boy Is Mine","artist_name":"Br and y and Monica","danceability":0.702,"acousticness":0.243,"energy":0.66,"tempo":93.022,"duration_ms":290467},
+    {"year":1998,"rank":3,"track_name":"You're Still the One","artist_name":"Shania Twain","danceability":0.585,"acousticness":0.363,"energy":0.494,"tempo":133.822,"duration_ms":212200},
+    {"year":1998,"rank":4,"track_name":"Truly Madly Deeply","artist_name":"Savage Garden","danceability":0.555,"acousticness":0.403,"energy":0.698,"tempo":168.12,"duration_ms":277267},
+    {"year":1998,"rank":5,"track_name":"How Do I Live","artist_name":"LeAnn Rimes","danceability":0.577,"acousticness":0.128,"energy":0.462,"tempo":128.303,"duration_ms":266973},
+    {"year":1998,"rank":6,"track_name":"Together Again","artist_name":"Janet","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1998,"rank":7,"track_name":"All My Life","artist_name":"K-Ci & JoJo","danceability":0.634,"acousticness":0.114,"energy":0.512,"tempo":128.019,"duration_ms":331240},
+    {"year":1998,"rank":8,"track_name":"Candle in the Wind 1997\" / \"Something About the Way You Look Tonight","artist_name":"Elton John","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1998,"rank":9,"track_name":"Nice & Slow","artist_name":"Usher","danceability":0.819,"acousticness":0.153,"energy":0.299,"tempo":121.913,"duration_ms":227907},
+    {"year":1998,"rank":10,"track_name":"I Don't Want to Wait","artist_name":"Paula Cole","danceability":0.41,"acousticness":0.298,"energy":0.468,"tempo":177.508,"duration_ms":320027}
+  ],
+  "1999": [
+    {"year":1999,"rank":1,"track_name":"Believe","artist_name":"Cher","danceability":0.776,"acousticness":0.0622,"energy":0.78,"tempo":124.949,"duration_ms":204347},
+    {"year":1999,"rank":2,"track_name":"No Scrubs","artist_name":"TLC","danceability":0.743,"acousticness":0.0251,"energy":0.675,"tempo":92.909,"duration_ms":214400},
+    {"year":1999,"rank":3,"track_name":"Angel of Mine","artist_name":"Monica","danceability":0.592,"acousticness":0.00373,"energy":0.562,"tempo":90.16,"duration_ms":250173},
+    {"year":1999,"rank":4,"track_name":"Heartbreak Hotel","artist_name":"Whitney Houston and Faith Evans and Kelly Price","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":1999,"rank":5,"track_name":"...Baby One More Time","artist_name":"Britney Spears","danceability":0.759,"acousticness":0.202,"energy":0.699,"tempo":92.96,"duration_ms":211067},
+    {"year":1999,"rank":6,"track_name":"Kiss Me","artist_name":"Sixpence None the Richer","danceability":0.465,"acousticness":0.839,"energy":0.218,"tempo":129.19,"duration_ms":256240},
+    {"year":1999,"rank":7,"track_name":"Genie in a Bottle","artist_name":"Christina Aguilera","danceability":0.627,"acousticness":0.21,"energy":0.8,"tempo":175.815,"duration_ms":217573},
+    {"year":1999,"rank":8,"track_name":"Every Morning","artist_name":"Sugar Ray","danceability":0.833,"acousticness":0.0834,"energy":0.679,"tempo":109.916,"duration_ms":219867},
+    {"year":1999,"rank":9,"track_name":"Nobody's Supposed to Be Here","artist_name":"Deborah Cox","danceability":0.662,"acousticness":0.202,"energy":0.531,"tempo":119.957,"duration_ms":262333},
+    {"year":1999,"rank":10,"track_name":"Livin' la Vida Loca","artist_name":"Ricky Martin","danceability":0.425,"acousticness":0.00411,"energy":0.954,"tempo":178.043,"duration_ms":243160}
+  ],
+  "2000": [
+    {"year":2000,"rank":1,"track_name":"Breathe","artist_name":"Faith Hill","danceability":0.529,"acousticness":0.173,"energy":0.496,"tempo":136.859,"duration_ms":250547},
+    {"year":2000,"rank":2,"track_name":"Smooth","artist_name":"Santana and Rob Thomas","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2000,"rank":3,"track_name":"Maria Maria","artist_name":"Santana and The Product G & B","danceability":0.777,"acousticness":0.0406,"energy":0.601,"tempo":97.911,"duration_ms":261973},
+    {"year":2000,"rank":4,"track_name":"I Wanna Know","artist_name":"Joe","danceability":0.725,"acousticness":0.26,"energy":0.487,"tempo":136.086,"duration_ms":296693},
+    {"year":2000,"rank":5,"track_name":"Everything You Want","artist_name":"Vertical Horizon","danceability":0.637,"acousticness":0.0504,"energy":0.759,"tempo":93.898,"duration_ms":257067},
+    {"year":2000,"rank":6,"track_name":"Say My Name","artist_name":"Destiny's Child","danceability":0.713,"acousticness":0.273,"energy":0.678,"tempo":138.009,"duration_ms":271333},
+    {"year":2000,"rank":7,"track_name":"I Knew I Loved You","artist_name":"Savage Garden","danceability":0.61,"acousticness":0.32,"energy":0.497,"tempo":85.031,"duration_ms":250360},
+    {"year":2000,"rank":8,"track_name":"Amazed","artist_name":"Lonestar","danceability":0.561,"acousticness":0.26,"energy":0.543,"tempo":139.803,"duration_ms":240867},
+    {"year":2000,"rank":9,"track_name":"Bent","artist_name":"Matchbox Twenty","danceability":0.518,"acousticness":0.0404,"energy":0.83,"tempo":95.468,"duration_ms":256133},
+    {"year":2000,"rank":10,"track_name":"He Wasn't Man Enough","artist_name":"Toni Braxton","danceability":0.739,"acousticness":0.00947,"energy":0.947,"tempo":88.009,"duration_ms":261933}
+  ],
+  "2001": [
+    {"year":2001,"rank":1,"track_name":"Hanging by a Moment","artist_name":"Lifehouse","danceability":0.541,"acousticness":0.00118,"energy":0.864,"tempo":124.557,"duration_ms":216067},
+    {"year":2001,"rank":2,"track_name":"Fallin'","artist_name":"Alicia Keys","danceability":0.652,"acousticness":0.263,"energy":0.609,"tempo":95.986,"duration_ms":210200},
+    {"year":2001,"rank":3,"track_name":"All for You","artist_name":"Janet Jackson","danceability":0.633,"acousticness":0.0316,"energy":0.754,"tempo":137.047,"duration_ms":218707},
+    {"year":2001,"rank":4,"track_name":"Drops of Jupiter (Tell Me)","artist_name":"Train","danceability":0.502,"acousticness":0.114,"energy":0.7,"tempo":79.687,"duration_ms":260000},
+    {"year":2001,"rank":5,"track_name":"I'm Real(Murder Remix)","artist_name":"Jennifer Lopez and Ja Rule","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2001,"rank":6,"track_name":"If You're Gone","artist_name":"Matchbox Twenty","danceability":0.544,"acousticness":0.427,"energy":0.659,"tempo":109.933,"duration_ms":274933},
+    {"year":2001,"rank":7,"track_name":"Let Me Blow Ya Mind","artist_name":"Eve and Gwen Stefani","danceability":0.908,"acousticness":0.242,"energy":0.557,"tempo":90.032,"duration_ms":230133},
+    {"year":2001,"rank":8,"track_name":"Thank You","artist_name":"Dido","danceability":0.722,"acousticness":0.284,"energy":0.595,"tempo":79.98,"duration_ms":217827},
+    {"year":2001,"rank":9,"track_name":"Again","artist_name":"Lenny Kravitz","danceability":0.55,"acousticness":0.0148,"energy":0.805,"tempo":79.168,"duration_ms":231667},
+    {"year":2001,"rank":10,"track_name":"Independent Women Part I","artist_name":"Destiny's Child","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null}
+  ],
+  "2002": [
+    {"year":2002,"rank":1,"track_name":"How You Remind Me","artist_name":"Nickelback","danceability":0.446,"acousticness":0.00135,"energy":0.764,"tempo":172.094,"duration_ms":223840},
+    {"year":2002,"rank":2,"track_name":"Foolish","artist_name":"Ashanti","danceability":0.665,"acousticness":0.347,"energy":0.695,"tempo":90.119,"duration_ms":227387},
+    {"year":2002,"rank":3,"track_name":"Hot in Herre","artist_name":"Nelly","danceability":0.956,"acousticness":0.204,"energy":0.741,"tempo":107.075,"duration_ms":228240},
+    {"year":2002,"rank":4,"track_name":"Dilemma","artist_name":"Nelly and Kelly Rowl and ","danceability":0.727,"acousticness":0.226,"energy":0.552,"tempo":168.19,"duration_ms":289160},
+    {"year":2002,"rank":5,"track_name":"Wherever You Will Go","artist_name":"The Calling","danceability":0.558,"acousticness":0.0367,"energy":0.719,"tempo":112.027,"duration_ms":208600},
+    {"year":2002,"rank":6,"track_name":"A Thousand Miles","artist_name":"Vanessa Carlton","danceability":0.56,"acousticness":0.323,"energy":0.825,"tempo":94.931,"duration_ms":237493},
+    {"year":2002,"rank":7,"track_name":"In the End","artist_name":"Linkin Park","danceability":0.556,"acousticness":0.00958,"energy":0.864,"tempo":105.143,"duration_ms":216880},
+    {"year":2002,"rank":8,"track_name":"What's Luv?","artist_name":"Fat Joe and Ashanti","danceability":0.835,"acousticness":0.0219,"energy":0.707,"tempo":93.955,"duration_ms":267093},
+    {"year":2002,"rank":9,"track_name":"U Got It Bad","artist_name":"Usher","danceability":0.816,"acousticness":0.0227,"energy":0.5,"tempo":124.037,"duration_ms":247840},
+    {"year":2002,"rank":10,"track_name":"Blurry","artist_name":"Puddle of Mudd","danceability":0.431,"acousticness":0.00805,"energy":0.938,"tempo":157.462,"duration_ms":304000}
+  ],
+  "2003": [
+    {"year":2003,"rank":1,"track_name":"In da Club","artist_name":"50 Cent","danceability":0.902,"acousticness":0.26,"energy":0.72,"tempo":90.059,"duration_ms":193467},
+    {"year":2003,"rank":2,"track_name":"Ignition","artist_name":"R. Kelly","danceability":0.795,"acousticness":0.061,"energy":0.523,"tempo":133.024,"duration_ms":186067},
+    {"year":2003,"rank":3,"track_name":"Get Busy","artist_name":"Sean Paul","danceability":0.735,"acousticness":0.615,"energy":0.824,"tempo":100.202,"duration_ms":211666},
+    {"year":2003,"rank":4,"track_name":"Crazy in Love","artist_name":"Beyoncé and Jay-Z","danceability":0.646,"acousticness":0.00249,"energy":0.77,"tempo":99.165,"duration_ms":236133},
+    {"year":2003,"rank":5,"track_name":"When I'm Gone","artist_name":"3 Doors Down","danceability":0.496,"acousticness":0.00457,"energy":0.765,"tempo":74.072,"duration_ms":260507},
+    {"year":2003,"rank":6,"track_name":"Unwell","artist_name":"Matchbox Twenty","danceability":0.435,"acousticness":0.0341,"energy":0.781,"tempo":81.366,"duration_ms":234227},
+    {"year":2003,"rank":7,"track_name":"Right Thurr","artist_name":"Chingy","danceability":0.866,"acousticness":0.15,"energy":0.749,"tempo":92.074,"duration_ms":250747},
+    {"year":2003,"rank":8,"track_name":"Miss You","artist_name":"Aaliyah","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2003,"rank":9,"track_name":"Picture","artist_name":"Kid Rock and Sheryl Crow","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2003,"rank":10,"track_name":"Bring Me to Life","artist_name":"Evanescence and Paul McCoy","danceability":0.331,"acousticness":0.00721,"energy":0.943,"tempo":94.612,"duration_ms":235893}
+  ],
+  "2004": [
+    {"year":2004,"rank":1,"track_name":"Yeah!","artist_name":"Usher and Lil Jon and Ludacris","danceability":0.894,"acousticness":0.0183,"energy":0.791,"tempo":105.018,"duration_ms":250373},
+    {"year":2004,"rank":2,"track_name":"Burn","artist_name":"Usher","danceability":0.796,"acousticness":0.314,"energy":0.477,"tempo":119.928,"duration_ms":231933},
+    {"year":2004,"rank":3,"track_name":"If I Ain't Got You","artist_name":"Alicia Keys","danceability":0.609,"acousticness":0.603,"energy":0.445,"tempo":118.393,"duration_ms":228707},
+    {"year":2004,"rank":4,"track_name":"This Love","artist_name":"Maroon 5","danceability":0.71,"acousticness":0.0564,"energy":0.872,"tempo":95.057,"duration_ms":206373},
+    {"year":2004,"rank":5,"track_name":"The Way You Move","artist_name":"OutKast and Sleepy Brown","danceability":0.871,"acousticness":0.126,"energy":0.597,"tempo":125.999,"duration_ms":234000},
+    {"year":2004,"rank":6,"track_name":"The Reason","artist_name":"Hoobastank","danceability":0.472,"acousticness":0.0129,"energy":0.671,"tempo":82.952,"duration_ms":232800},
+    {"year":2004,"rank":7,"track_name":"I Don't Wanna Know","artist_name":"Mario Winans and Enya and P. Diddy","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2004,"rank":8,"track_name":"Hey Ya!","artist_name":"OutKast","danceability":0.727,"acousticness":0.103,"energy":0.974,"tempo":79.526,"duration_ms":235213},
+    {"year":2004,"rank":9,"track_name":"Goodies","artist_name":"Ciara and Petey Pablo","danceability":0.826,"acousticness":0.0277,"energy":0.647,"tempo":102.017,"duration_ms":223000},
+    {"year":2004,"rank":10,"track_name":"Lean Back","artist_name":"Terror Squad and Fat Joe and Remy Ma","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null}
+  ],
+  "2005": [
+    {"year":2005,"rank":1,"track_name":"We Belong Together","artist_name":"Mariah Carey","danceability":0.837,"acousticness":0.0339,"energy":0.462,"tempo":139.986,"duration_ms":201400},
+    {"year":2005,"rank":2,"track_name":"Hollaback Girl","artist_name":"Gwen Stefani","danceability":0.783,"acousticness":0.93,"energy":0.779,"tempo":109.991,"duration_ms":192893},
+    {"year":2005,"rank":3,"track_name":"Let Me Love You","artist_name":"Mario","danceability":0.656,"acousticness":0.235,"energy":0.578,"tempo":94.514,"duration_ms":256733},
+    {"year":2005,"rank":4,"track_name":"Since U Been Gone","artist_name":"Kelly Clarkson","danceability":0.662,"acousticness":0.00165,"energy":0.741,"tempo":131,"duration_ms":188960},
+    {"year":2005,"rank":5,"track_name":"1, 2 Step","artist_name":"Ciara and Missy Elliott","danceability":0.944,"acousticness":0.042,"energy":0.511,"tempo":113.046,"duration_ms":203787},
+    {"year":2005,"rank":6,"track_name":"Gold Digger","artist_name":"Kanye West and Jamie Foxx","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2005,"rank":7,"track_name":"Boulevard of Broken Dreams","artist_name":"Green Day","danceability":0.496,"acousticness":0.00552,"energy":0.682,"tempo":167.06,"duration_ms":262333},
+    {"year":2005,"rank":8,"track_name":"Candy Shop","artist_name":"50 Cent and Olivia","danceability":0.613,"acousticness":0.0253,"energy":0.574,"tempo":125.18,"duration_ms":209107},
+    {"year":2005,"rank":9,"track_name":"Don't Cha","artist_name":"The Pussycat Dolls and Busta Rhymes","danceability":0.877,"acousticness":0.00516,"energy":0.637,"tempo":119.988,"duration_ms":272080},
+    {"year":2005,"rank":10,"track_name":"Behind These Hazel Eyes","artist_name":"Kelly Clarkson","danceability":0.548,"acousticness":0.00165,"energy":0.889,"tempo":90.048,"duration_ms":198973}
+  ],
+  "2006": [
+    {"year":2006,"rank":1,"track_name":"Bad Day","artist_name":"Daniel Powter","danceability":0.599,"acousticness":0.448,"energy":0.785,"tempo":140.046,"duration_ms":233640},
+    {"year":2006,"rank":2,"track_name":"Temperature","artist_name":"Sean Paul","danceability":0.951,"acousticness":0.106,"energy":0.6,"tempo":125.04,"duration_ms":218573},
+    {"year":2006,"rank":3,"track_name":"Promiscuous","artist_name":"Nelly Furtado and Timbal and ","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2006,"rank":4,"track_name":"You're Beautiful","artist_name":"James Blunt","danceability":0.675,"acousticness":0.633,"energy":0.479,"tempo":81.998,"duration_ms":209493},
+    {"year":2006,"rank":5,"track_name":"Hips Don't Lie","artist_name":"Shakira and Wyclef Jean","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2006,"rank":6,"track_name":"Unwritten","artist_name":"Natasha Bedingfield","danceability":0.706,"acousticness":0.00577,"energy":0.801,"tempo":100.013,"duration_ms":259333},
+    {"year":2006,"rank":7,"track_name":"Crazy","artist_name":"Gnarls Barkley","danceability":0.835,"acousticness":0.0172,"energy":0.741,"tempo":111.963,"duration_ms":182066},
+    {"year":2006,"rank":8,"track_name":"Ridin'","artist_name":"Chamillionaire and Krayzie Bone","danceability":0.788,"acousticness":0.189,"energy":0.798,"tempo":143.051,"duration_ms":303053},
+    {"year":2006,"rank":9,"track_name":"SexyBack","artist_name":"Justin Timberlake and Timbal and ","danceability":0.967,"acousticness":0.0584,"energy":0.583,"tempo":117,"duration_ms":242733},
+    {"year":2006,"rank":10,"track_name":"Check on It","artist_name":"Beyoncé and Slim Thug and Bun B","danceability":0.705,"acousticness":0.0708,"energy":0.796,"tempo":166.042,"duration_ms":210453}
+  ],
+  "2007": [
+    {"year":2007,"rank":1,"track_name":"Irreplaceable","artist_name":"Beyoncé","danceability":0.447,"acousticness":0.0293,"energy":0.694,"tempo":175.868,"duration_ms":227853},
+    {"year":2007,"rank":2,"track_name":"Umbrella","artist_name":"Rihanna and Jay-Z","danceability":0.583,"acousticness":0.00864,"energy":0.829,"tempo":174.028,"duration_ms":275987},
+    {"year":2007,"rank":3,"track_name":"The Sweet Escape","artist_name":"Gwen Stefani and Akon","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2007,"rank":4,"track_name":"Big Girls Don't Cry","artist_name":"Fergie","danceability":0.708,"acousticness":0.205,"energy":0.641,"tempo":113.082,"duration_ms":268120},
+    {"year":2007,"rank":5,"track_name":"Buy U a Drank (Shawty Snappin')","artist_name":"T-Pain and Yung Joc","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2007,"rank":6,"track_name":"Before He Cheats","artist_name":"Carrie Underwood","danceability":0.519,"acousticness":0.271,"energy":0.749,"tempo":147.905,"duration_ms":199947},
+    {"year":2007,"rank":7,"track_name":"Hey There Delilah","artist_name":"Plain White T's","danceability":0.657,"acousticness":0.872,"energy":0.291,"tempo":103.973,"duration_ms":232533},
+    {"year":2007,"rank":8,"track_name":"I Wanna Love You","artist_name":"Akon and Snoop Dogg","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2007,"rank":9,"track_name":"Say It Right","artist_name":"Nelly Furtado","danceability":0.871,"acousticness":0.0409,"energy":0.869,"tempo":116.951,"duration_ms":223080},
+    {"year":2007,"rank":10,"track_name":"Glamorous","artist_name":"Fergie and Ludacris","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null}
+  ],
+  "2008": [
+    {"year":2008,"rank":1,"track_name":"Low","artist_name":"Flo Rida and T-Pain","danceability":0.918,"acousticness":0.0928,"energy":0.609,"tempo":128.008,"duration_ms":231400},
+    {"year":2008,"rank":2,"track_name":"Bleeding Love","artist_name":"Leona Lewis","danceability":0.638,"acousticness":0.188,"energy":0.656,"tempo":104.036,"duration_ms":262467},
+    {"year":2008,"rank":3,"track_name":"No One","artist_name":"Alicia Keys","danceability":0.705,"acousticness":0.552,"energy":0.339,"tempo":97.989,"duration_ms":236907},
+    {"year":2008,"rank":4,"track_name":"Lollipop","artist_name":"Lil Wayne and Static Major","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2008,"rank":5,"track_name":"Apologize","artist_name":"OneRepublic","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2008,"rank":6,"track_name":"No Air","artist_name":"Jordin Sparks and Chris Brown","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2008,"rank":7,"track_name":"Love Song","artist_name":"Sara Bareilles","danceability":0.641,"acousticness":0.831,"energy":0.355,"tempo":120.032,"duration_ms":148640},
+    {"year":2008,"rank":8,"track_name":"Love in This Club","artist_name":"Usher and Young Jeezy","danceability":0.573,"acousticness":0.0572,"energy":0.712,"tempo":140.012,"duration_ms":259720},
+    {"year":2008,"rank":9,"track_name":"With You","artist_name":"Chris Brown","danceability":0.662,"acousticness":0.134,"energy":0.693,"tempo":86.009,"duration_ms":252120}
+  ],
+  "2009": [
+    {"year":2009,"rank":1,"track_name":"Boom Boom Pow","artist_name":"The Black Eyed Peas","danceability":0.868,"acousticness":0.109,"energy":0.86,"tempo":130.051,"duration_ms":241867},
+    {"year":2009,"rank":2,"track_name":"Poker Face","artist_name":"Lady Gaga","danceability":0.851,"acousticness":0.12,"energy":0.806,"tempo":119.001,"duration_ms":237200},
+    {"year":2009,"rank":3,"track_name":"Just Dance","artist_name":"Lady Gaga and Colby O'Donis","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2009,"rank":4,"track_name":"I Gotta Feeling","artist_name":"The Black Eyed Peas","danceability":0.744,"acousticness":0.0456,"energy":0.775,"tempo":127.967,"duration_ms":244240},
+    {"year":2009,"rank":5,"track_name":"Love Story","artist_name":"Taylor Swift","danceability":0.618,"acousticness":0.17,"energy":0.741,"tempo":118.984,"duration_ms":235267},
+    {"year":2009,"rank":6,"track_name":"Right Round","artist_name":"Flo Rida","danceability":0.72,"acousticness":0.009,"energy":0.672,"tempo":124.986,"duration_ms":204640},
+    {"year":2009,"rank":7,"track_name":"I'm Yours","artist_name":"Jason Mraz","danceability":0.686,"acousticness":0.595,"energy":0.457,"tempo":150.953,"duration_ms":242187},
+    {"year":2009,"rank":8,"track_name":"Single Ladies (Put a Ring on It)","artist_name":"Beyoncé","danceability":0.426,"acousticness":0.0383,"energy":0.584,"tempo":193.437,"duration_ms":193213},
+    {"year":2009,"rank":9,"track_name":"Heartless","artist_name":"Kanye West","danceability":0.79,"acousticness":0.0515,"energy":0.647,"tempo":87.999,"duration_ms":211000},
+    {"year":2009,"rank":10,"track_name":"Gives You Hell","artist_name":"The All-American Rejects","danceability":0.718,"acousticness":0.0159,"energy":0.691,"tempo":100.008,"duration_ms":213107}
+  ],
+  "2010": [
+    {"year":2010,"rank":1,"track_name":"Tik Tok","artist_name":"Kesha","danceability":0.755,"acousticness":0.0991,"energy":0.837,"tempo":120.028,"duration_ms":199693},
+    {"year":2010,"rank":2,"track_name":"Need You Now","artist_name":"Lady Antebellum","danceability":0.587,"acousticness":0.0927,"energy":0.622,"tempo":107.943,"duration_ms":277573},
+    {"year":2010,"rank":3,"track_name":"Hey, Soul Sister","artist_name":"Train","danceability":0.676,"acousticness":0.217,"energy":0.883,"tempo":97.02,"duration_ms":215547},
+    {"year":2010,"rank":4,"track_name":"California Gurls","artist_name":"Katy Perry and Snoop Dogg","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2010,"rank":5,"track_name":"OMG","artist_name":"Usher and will.i.am","danceability":0.781,"acousticness":0.198,"energy":0.745,"tempo":129.998,"duration_ms":269493},
+    {"year":2010,"rank":6,"track_name":"Airplanes","artist_name":"B.o.B and Hayley Williams","danceability":0.66,"acousticness":0.11,"energy":0.867,"tempo":93.033,"duration_ms":180480},
+    {"year":2010,"rank":7,"track_name":"Love the Way You Lie","artist_name":"Eminem and Rihanna","danceability":0.749,"acousticness":0.241,"energy":0.925,"tempo":86.989,"duration_ms":263373},
+    {"year":2010,"rank":8,"track_name":"Bad Romance","artist_name":"Lady Gaga","danceability":0.696,"acousticness":0.00314,"energy":0.921,"tempo":119.001,"duration_ms":294573},
+    {"year":2010,"rank":9,"track_name":"Dynamite","artist_name":"Taio Cruz","danceability":0.754,"acousticness":0.00332,"energy":0.804,"tempo":119.968,"duration_ms":203867},
+    {"year":2010,"rank":10,"track_name":"Break Your Heart","artist_name":"Taio Cruz and Ludacris","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null}
+  ],
+  "2011": [
+    {"year":2011,"rank":1,"track_name":"Rolling in the Deep","artist_name":"Adele","danceability":0.73,"acousticness":0.138,"energy":0.77,"tempo":104.948,"duration_ms":228093},
+    {"year":2011,"rank":2,"track_name":"Party Rock Anthem","artist_name":"LMFAO and Lauren Bennett and GoonRock","danceability":0.75,"acousticness":0.0189,"energy":0.727,"tempo":129.993,"duration_ms":262173},
+    {"year":2011,"rank":3,"track_name":"Firework","artist_name":"Katy Perry","danceability":0.638,"acousticness":0.139,"energy":0.826,"tempo":124.072,"duration_ms":227880},
+    {"year":2011,"rank":4,"track_name":"E.T.","artist_name":"Katy Perry and Kanye West","danceability":0.603,"acousticness":0.0213,"energy":0.872,"tempo":150.104,"duration_ms":206373},
+    {"year":2011,"rank":5,"track_name":"Give Me Everything","artist_name":"Pitbull and Ne-Yo,Afrojack and Nayer","danceability":0.671,"acousticness":0.191,"energy":0.939,"tempo":129.024,"duration_ms":252307},
+    {"year":2011,"rank":6,"track_name":"Grenade","artist_name":"Bruno Mars","danceability":0.706,"acousticness":0.146,"energy":0.558,"tempo":110.443,"duration_ms":223253},
+    {"year":2011,"rank":7,"track_name":"Fuck You (Forget You)","artist_name":"CeeLo Green","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2011,"rank":8,"track_name":"Super Bass","artist_name":"Nicki Minaj","danceability":0.72,"acousticness":0.269,"energy":0.861,"tempo":126.991,"duration_ms":200013},
+    {"year":2011,"rank":9,"track_name":"Moves like Jagger","artist_name":"Maroon 5 and Christina Aguilera","danceability":0.722,"acousticness":0.0111,"energy":0.758,"tempo":128.047,"duration_ms":201160},
+    {"year":2011,"rank":10,"track_name":"Just Can't Get Enough","artist_name":"The Black Eyed Peas","danceability":0.659,"acousticness":0.186,"energy":0.628,"tempo":94.05,"duration_ms":219427}
+  ],
+  "2012": [
+    {"year":2012,"rank":1,"track_name":"Somebody That I Used to Know","artist_name":"Gotye and Kimbra","danceability":0.864,"acousticness":0.591,"energy":0.495,"tempo":129.062,"duration_ms":244973},
+    {"year":2012,"rank":2,"track_name":"Call Me Maybe","artist_name":"Carly Rae Jepsen","danceability":0.783,"acousticness":0.0114,"energy":0.58,"tempo":120.021,"duration_ms":193400},
+    {"year":2012,"rank":3,"track_name":"We Are Young","artist_name":"Fun and Janelle Monáe","danceability":0.378,"acousticness":0.02,"energy":0.638,"tempo":184.086,"duration_ms":250627},
+    {"year":2012,"rank":4,"track_name":"Payphone","artist_name":"Maroon 5 and Wiz Khalifa","danceability":0.739,"acousticness":0.0136,"energy":0.756,"tempo":110.028,"duration_ms":231387},
+    {"year":2012,"rank":5,"track_name":"Lights","artist_name":"Ellie Goulding","danceability":0.675,"acousticness":0.0325,"energy":0.549,"tempo":120.047,"duration_ms":211987},
+    {"year":2012,"rank":6,"track_name":"Glad You Came","artist_name":"The Wanted","danceability":0.61,"acousticness":0.056,"energy":0.841,"tempo":126.889,"duration_ms":198187},
+    {"year":2012,"rank":7,"track_name":"Stronger (What Doesn't Kill You)","artist_name":"Kelly Clarkson","danceability":0.562,"acousticness":0.046,"energy":0.939,"tempo":116.044,"duration_ms":221947},
+    {"year":2012,"rank":8,"track_name":"We Found Love","artist_name":"Rihanna and Calvin Harris","danceability":0.734,"acousticness":0.025,"energy":0.766,"tempo":127.986,"duration_ms":215227},
+    {"year":2012,"rank":9,"track_name":"Starships","artist_name":"Nicki Minaj","danceability":0.747,"acousticness":0.135,"energy":0.716,"tempo":125.008,"duration_ms":210627},
+    {"year":2012,"rank":10,"track_name":"What Makes You Beautiful","artist_name":"One Direction","danceability":0.726,"acousticness":0.009,"energy":0.787,"tempo":124.989,"duration_ms":199987}
+  ],
+  "2013": [
+    {"year":2013,"rank":1,"track_name":"Thrift Shop","artist_name":"Macklemore & Ryan Lewis and Wanz","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2013,"rank":2,"track_name":"Blurred Lines","artist_name":"Robin Thicke and T.I. and Pharrell Williams","danceability":0.853,"acousticness":0.00334,"energy":0.599,"tempo":119.993,"duration_ms":263827},
+    {"year":2013,"rank":3,"track_name":"Radioactive","artist_name":"Imagine Dragons","danceability":0.448,"acousticness":0.106,"energy":0.784,"tempo":136.245,"duration_ms":186813},
+    {"year":2013,"rank":4,"track_name":"Harlem Shake","artist_name":"Baauer","danceability":0.452,"acousticness":0.0111,"energy":0.794,"tempo":137.825,"duration_ms":196664},
+    {"year":2013,"rank":5,"track_name":"Can't Hold Us","artist_name":"Macklemore & Ryan Lewis and Ray Dalton","danceability":0.641,"acousticness":0.0291,"energy":0.922,"tempo":146.078,"duration_ms":258343},
+    {"year":2013,"rank":6,"track_name":"Mirrors","artist_name":"Justin Timberlake","danceability":0.574,"acousticness":0.234,"energy":0.512,"tempo":76.899,"duration_ms":484147},
+    {"year":2013,"rank":7,"track_name":"Just Give Me a Reason","artist_name":"Pink and Nate Ruess","danceability":0.778,"acousticness":0.346,"energy":0.547,"tempo":95.002,"duration_ms":242733},
+    {"year":2013,"rank":8,"track_name":"When I Was Your Man","artist_name":"Bruno Mars","danceability":0.612,"acousticness":0.932,"energy":0.28,"tempo":72.795,"duration_ms":213827},
+    {"year":2013,"rank":9,"track_name":"Cruise","artist_name":"Florida Georgia Line and Nelly","danceability":0.457,"acousticness":0.0191,"energy":0.948,"tempo":148,"duration_ms":208960},
+    {"year":2013,"rank":10,"track_name":"Roar","artist_name":"Katy Perry","danceability":0.554,"acousticness":0.00487,"energy":0.772,"tempo":179.984,"duration_ms":223546}
+  ],
+  "2014": [
+    {"year":2014,"rank":1,"track_name":"Happy","artist_name":"Pharrell Williams","danceability":0.647,"acousticness":0.219,"energy":0.822,"tempo":160.019,"duration_ms":232720},
+    {"year":2014,"rank":2,"track_name":"Dark Horse","artist_name":"Katy Perry and Juicy J","danceability":0.645,"acousticness":0.00314,"energy":0.585,"tempo":131.931,"duration_ms":215672},
+    {"year":2014,"rank":3,"track_name":"All of Me","artist_name":"John Legend","danceability":0.422,"acousticness":0.922,"energy":0.264,"tempo":119.93,"duration_ms":269560},
+    {"year":2014,"rank":4,"track_name":"Fancy","artist_name":"Iggy Azalea and Charli XCX","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2014,"rank":5,"track_name":"Counting Stars","artist_name":"OneRepublic","danceability":0.663,"acousticness":0.0654,"energy":0.706,"tempo":122.013,"duration_ms":257840},
+    {"year":2014,"rank":6,"track_name":"Talk Dirty","artist_name":"Jason Derulo and 2 Chainz","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2014,"rank":7,"track_name":"Rude","artist_name":"Magic!","danceability":0.774,"acousticness":0.0423,"energy":0.756,"tempo":144.032,"duration_ms":224840},
+    {"year":2014,"rank":8,"track_name":"All About That Bass","artist_name":"Meghan Trainor","danceability":0.807,"acousticness":0.0573,"energy":0.887,"tempo":134.052,"duration_ms":187920},
+    {"year":2014,"rank":9,"track_name":"Problem","artist_name":"Ariana Gr and e and Iggy Azalea","danceability":0.66,"acousticness":0.0192,"energy":0.805,"tempo":103.009,"duration_ms":193920},
+    {"year":2014,"rank":10,"track_name":"Stay with Me","artist_name":"Sam Smith","danceability":0.418,"acousticness":0.588,"energy":0.42,"tempo":84.094,"duration_ms":172724}
+  ],
+  "2015": [
+    {"year":2015,"rank":1,"track_name":"Uptown Funk","artist_name":"Mark Ronson and Bruno Mars","danceability":0.856,"acousticness":0.00801,"energy":0.609,"tempo":114.988,"duration_ms":269667},
+    {"year":2015,"rank":2,"track_name":"Thinking Out Loud","artist_name":"Ed Sheeran","danceability":0.781,"acousticness":0.474,"energy":0.445,"tempo":78.998,"duration_ms":281560},
+    {"year":2015,"rank":3,"track_name":"See You Again","artist_name":"Wiz Khalifa and Charlie Puth","danceability":0.558,"acousticness":0.371,"energy":0.559,"tempo":78.558,"duration_ms":180387},
+    {"year":2015,"rank":4,"track_name":"Trap Queen","artist_name":"Fetty Wap","danceability":0.746,"acousticness":0.0244,"energy":0.873,"tempo":148.075,"duration_ms":222093},
+    {"year":2015,"rank":5,"track_name":"Sugar","artist_name":"Maroon 5","danceability":0.68,"acousticness":0.0508,"energy":0.54,"tempo":105,"duration_ms":253627},
+    {"year":2015,"rank":6,"track_name":"Shut Up and Dance","artist_name":"Walk the Moon","danceability":0.578,"acousticness":0.00701,"energy":0.866,"tempo":128.038,"duration_ms":199080},
+    {"year":2015,"rank":7,"track_name":"Blank Space","artist_name":"Taylor Swift","danceability":0.76,"acousticness":0.103,"energy":0.703,"tempo":95.997,"duration_ms":231827},
+    {"year":2015,"rank":8,"track_name":"Watch Me","artist_name":"Silentó","danceability":0.821,"acousticness":0.247,"energy":0.759,"tempo":140.01,"duration_ms":185143},
+    {"year":2015,"rank":9,"track_name":"Earned It","artist_name":"The Weeknd","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null}
+  ],
+  "2016": [
+    {"year":2016,"rank":1,"track_name":"Love Yourself","artist_name":"Justin Bieber","danceability":0.609,"acousticness":0.835,"energy":0.378,"tempo":100.418,"duration_ms":233720},
+    {"year":2016,"rank":3,"track_name":"One Dance","artist_name":"Drake and Wizkid and Kyla","danceability":0.792,"acousticness":0.00776,"energy":0.625,"tempo":103.967,"duration_ms":173987},
+    {"year":2016,"rank":4,"track_name":"Work","artist_name":"Rihanna and Drake","danceability":0.725,"acousticness":0.0752,"energy":0.534,"tempo":91.974,"duration_ms":219320},
+    {"year":2016,"rank":5,"track_name":"Stressed Out","artist_name":"Twenty One Pilots","danceability":0.734,"acousticness":0.0462,"energy":0.637,"tempo":169.977,"duration_ms":202333},
+    {"year":2016,"rank":6,"track_name":"Panda","artist_name":"Desiigner","danceability":0.685,"acousticness":0.0292,"energy":0.731,"tempo":145.245,"duration_ms":247867},
+    {"year":2016,"rank":7,"track_name":"Hello","artist_name":"Adele","danceability":0.481,"acousticness":0.336,"energy":0.451,"tempo":157.966,"duration_ms":295493},
+    {"year":2016,"rank":8,"track_name":"Don't Let Me Down","artist_name":"The Chainsmokers and Daya","danceability":0.533,"acousticness":0.156,"energy":0.869,"tempo":159.805,"duration_ms":208373},
+    {"year":2016,"rank":9,"track_name":"Can't Stop the Feeling!","artist_name":"Justin Timberlake","danceability":0.669,"acousticness":0.0106,"energy":0.832,"tempo":113.035,"duration_ms":237547},
+    {"year":2016,"rank":10,"track_name":"Closer","artist_name":"The Chainsmokers and Halsey","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null}
+  ],
+  "2017": [
+    {"year":2017,"rank":1,"track_name":"Shape of You","artist_name":"Ed Sheeran","danceability":0.825,"acousticness":0.581,"energy":0.652,"tempo":95.977,"duration_ms":233713},
+    {"year":2017,"rank":2,"track_name":"Despacito (Remix)","artist_name":"Luis Fonsi and Daddy Yankee and Justin Bieber","danceability":0.653,"acousticness":0.228,"energy":0.816,"tempo":178.086,"duration_ms":228827},
+    {"year":2017,"rank":3,"track_name":"That's What I Like","artist_name":"Bruno Mars","danceability":0.853,"acousticness":0.013,"energy":0.56,"tempo":134.066,"duration_ms":206693},
+    {"year":2017,"rank":4,"track_name":"Humble","artist_name":"Kendrick Lamar","danceability":0.908,"acousticness":0.000282,"energy":0.621,"tempo":150.011,"duration_ms":177000},
+    {"year":2017,"rank":5,"track_name":"Something Just Like This","artist_name":"The Chainsmokers and Coldplay","danceability":0.617,"acousticness":0.0498,"energy":0.635,"tempo":103.019,"duration_ms":247160},
+    {"year":2017,"rank":6,"track_name":"Bad and Boujee","artist_name":"Migos and Lil Uzi Vert","danceability":0.926,"acousticness":0.0611,"energy":0.666,"tempo":127.079,"duration_ms":343150},
+    {"year":2017,"rank":7,"track_name":"Closer","artist_name":"The Chainsmokers and Halsey","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2017,"rank":8,"track_name":"Body Like a Back Road","artist_name":"Sam Hunt","danceability":0.732,"acousticness":0.447,"energy":0.458,"tempo":98.938,"duration_ms":165387},
+    {"year":2017,"rank":9,"track_name":"Believer","artist_name":"Imagine Dragons","danceability":0.776,"acousticness":0.0622,"energy":0.78,"tempo":124.949,"duration_ms":204347},
+    {"year":2017,"rank":10,"track_name":"Congratulations","artist_name":"Post Malone and Quavo","danceability":0.63,"acousticness":0.215,"energy":0.804,"tempo":123.146,"duration_ms":220293}
+  ],
+  "2018": [
+    {"year":2018,"rank":1,"track_name":"God's Plan","artist_name":"Drake","danceability":0.754,"acousticness":0.0332,"energy":0.449,"tempo":77.169,"duration_ms":198973},
+    {"year":2018,"rank":2,"track_name":"Perfect","artist_name":"Ed Sheeran","danceability":0.599,"acousticness":0.163,"energy":0.448,"tempo":95.05,"duration_ms":263400},
+    {"year":2018,"rank":3,"track_name":"Meant to Be","artist_name":"Bebe Rexha and Florida Georgia Line","danceability":0.643,"acousticness":0.047,"energy":0.783,"tempo":154.084,"duration_ms":163870},
+    {"year":2018,"rank":4,"track_name":"Havana","artist_name":"Camila Cabello and Young Thug","danceability":0.765,"acousticness":0.184,"energy":0.523,"tempo":104.988,"duration_ms":217307},
+    {"year":2018,"rank":5,"track_name":"Rockstar","artist_name":"Post Malone and 21 Savage","danceability":0.616,"acousticness":0.0459,"energy":0.91,"tempo":144.073,"duration_ms":252040},
+    {"year":2018,"rank":6,"track_name":"Psycho","artist_name":"Post Malone and Ty Dolla Sign","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2018,"rank":7,"track_name":"I Like It","artist_name":"Cardi B,Bad Bunny and J Balvin","danceability":0.816,"acousticness":0.099,"energy":0.726,"tempo":136.048,"duration_ms":253390},
+    {"year":2018,"rank":8,"track_name":"The Middle","artist_name":"Zedd,Maren Morris and Grey","danceability":0.643,"acousticness":0.0371,"energy":0.849,"tempo":162.152,"duration_ms":165853},
+    {"year":2018,"rank":9,"track_name":"In My Feelings","artist_name":"Drake","danceability":0.835,"acousticness":0.0589,"energy":0.626,"tempo":91.03,"duration_ms":217925},
+    {"year":2018,"rank":10,"track_name":"Girls Like You","artist_name":"Maroon 5 and Cardi B","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null}
+  ],
+  "2019": [
+    {"year":2019,"rank":1,"track_name":"Old Town Road","artist_name":"Lil Nas X and Billy Ray Cyrus","danceability":0.878,"acousticness":0.0533,"energy":0.619,"tempo":136.041,"duration_ms":157067},
+    {"year":2019,"rank":2,"track_name":"Sunflower","artist_name":"Post Malone and Swae Lee","danceability":0.76,"acousticness":0.556,"energy":0.479,"tempo":89.911,"duration_ms":158040},
+    {"year":2019,"rank":3,"track_name":"Without Me","artist_name":"Halsey","danceability":0.908,"acousticness":0.00286,"energy":0.669,"tempo":112.238,"duration_ms":290320},
+    {"year":2019,"rank":4,"track_name":"Bad Guy","artist_name":"Billie Eilish","danceability":0.701,"acousticness":0.328,"energy":0.425,"tempo":135.128,"duration_ms":194088},
+    {"year":2019,"rank":5,"track_name":"Wow","artist_name":"Post Malone","danceability":0.829,"acousticness":0.137,"energy":0.538,"tempo":99.952,"duration_ms":149547},
+    {"year":2019,"rank":6,"track_name":"Happier","artist_name":"Marshmello and Bastille","danceability":0.687,"acousticness":0.191,"energy":0.792,"tempo":100.011,"duration_ms":214290},
+    {"year":2019,"rank":7,"track_name":"7 Rings","artist_name":"Ariana Gr and e","danceability":0.778,"acousticness":0.592,"energy":0.317,"tempo":140.048,"duration_ms":178627},
+    {"year":2019,"rank":8,"track_name":"Talk","artist_name":"Khalid","danceability":0.901,"acousticness":0.051,"energy":0.4,"tempo":135.984,"duration_ms":197573},
+    {"year":2019,"rank":9,"track_name":"Sicko Mode","artist_name":"Travis Scott","danceability":0.834,"acousticness":0.00513,"energy":0.73,"tempo":155.008,"duration_ms":312820},
+    {"year":2019,"rank":10,"track_name":"Sucker","artist_name":"Jonas Brothers","danceability":0.502,"acousticness":0.255,"energy":0.786,"tempo":169.021,"duration_ms":243491}
+  ],
+  "2020": [
+    {"year":2020,"rank":1,"track_name":"Blinding Lights","artist_name":"The Weeknd","danceability":0.513,"acousticness":0.00147,"energy":0.796,"tempo":171.017,"duration_ms":201573},
+    {"year":2020,"rank":2,"track_name":"Circles","artist_name":"Post Malone","danceability":0.695,"acousticness":0.189,"energy":0.763,"tempo":120.042,"duration_ms":215280},
+    {"year":2020,"rank":3,"track_name":"The Box","artist_name":"Roddy Ricch","danceability":0.896,"acousticness":0.104,"energy":0.586,"tempo":116.971,"duration_ms":196653},
+    {"year":2020,"rank":4,"track_name":"Don't Start Now","artist_name":"Dua Lipa","danceability":0.793,"acousticness":0.0123,"energy":0.793,"tempo":123.95,"duration_ms":183290},
+    {"year":2020,"rank":5,"track_name":"Rockstar","artist_name":"DaBaby and Roddy Ricch","danceability":null,"acousticness":null,"energy":null,"tempo":null,"duration_ms":null},
+    {"year":2020,"rank":6,"track_name":"Adore You","artist_name":"Harry Styles","danceability":0.676,"acousticness":0.0237,"energy":0.771,"tempo":99.048,"duration_ms":207133},
+    {"year":2020,"rank":7,"track_name":"Life Is Good","artist_name":"Future and Drake","danceability":0.676,"acousticness":0.0706,"energy":0.609,"tempo":142.037,"duration_ms":237735},
+    {"year":2020,"rank":8,"track_name":"Memories","artist_name":"Maroon 5","danceability":0.775,"acousticness":0.841,"energy":0.327,"tempo":91.05,"duration_ms":189486},
+    {"year":2020,"rank":9,"track_name":"The Bones","artist_name":"Maren Morris","danceability":0.612,"acousticness":0.278,"energy":0.57,"tempo":77.002,"duration_ms":197293},
+    {"year":2020,"rank":10,"track_name":"Someone You Loved","artist_name":"Lewis Capaldi","danceability":0.708,"acousticness":0.756,"energy":0.416,"tempo":109.87,"duration_ms":179840}
+  ]};
+
+let songsByYear = new Map(Object.entries(songsByYearData).map(([y, arr]) => [Number(y), arr]));
+let songsReady = true;
+let currentSliderResizeHandler = null;
+
+// helpers for feature tooltip 
+const featureCsvKey = f => f;
+
+const featureLabel = {
+  tempo: 'Tempo',
+  danceability: 'Danceability',
+  energy: 'Energy',
+  acousticness: 'Acousticness',
+  durationms: 'Duration',
+  duration_ms: 'Duration'
+};
+
+function formatFeatureValue(feature, value) {
+  if (value == null || Number.isNaN(value)) return '—';
+  if (feature === 'tempo') return `${Math.round(value)} BPM`;
+  if (feature === 'duration_ms') {
+    const secs = value / 1000;
+    return `${secs.toFixed(1)} s`;
+  }
+  return Number(value).toFixed(3);
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function buildTooltipHtml(year, feature, avgValue, songs) {
+  const label = featureLabel[feature] || feature;
+  const avgText = formatFeatureValue(feature, avgValue);
+  const lines = songs.map(row => {
+    const key = featureCsvKey(feature);
+    const perVal = formatFeatureValue(feature, row[key]);
+    return `<li>${escapeHtml(row.track_name)} — ${escapeHtml(row.artist_name)}: ${perVal}</li>`;
+  }).join('');
+  return `
+    <div><strong>${year} — ${label}</strong><br/>Average: ${avgText}</div>
+    <hr style="border-color: rgba(255,255,255,.12);" />
+    <ol style="margin: 0; padding-left: 18px;">
+      ${lines}
+    </ol>
+  `;
+}
+
+
+function setChartTitle(text){
+  g.selectAll(".chart-title").remove();
+  g.append("text")
+    .attr("class","chart-title")
+    .attr("x", width / 2)
+    .attr("y", -10)       
+    .attr("text-anchor","middle")
+    .text(text);
+}
+
+function prettyMetricName(k){
+  const map = {
+    genre: "Genre Share",
+    tempo: "Tempo",
+    danceability: "Danceability",
+    energy: "Energy",
+    acousticness: "Acousticness",
+    duration_ms: "Duration"
+  };
+  return map[k] || k;
+}
+
+// CHART SETUP 
+const svg = d3.select("#mainChart");
+const margin = {top:20,right:20,bottom:40,left:55};
+const width  = 900 - margin.left - margin.right;
+const height = 560 - margin.top - margin.bottom;
+const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+const chartTip = d3.select("#tooltip");
+function clearChart(){ g.selectAll("*").remove(); }
+
+// global state for decade view
+let linkedState = {
+  activeGenre: null,
+  showStats: { median:false, min:false, max:false, q1:false, q3:false }
+};
+
+// genre keys & colors
+const allGenreKeys = ["Rock", "Pop Rock", "Pop", "Pop Ballad", "Country Pop", "Latin Pop", "Pop Rap", "Rap", "Hip Hop", "R&B"];
+const color = d3.scaleOrdinal()
+  .domain(allGenreKeys)
+  .range(["#7ce2ad","#7cc6c6","#7ca8da","#808be9","#a689dd","#c784d0","#e77dc3","#eb9ab3","#ecb79f","#ebd385"]);
+
+// feature colors for non-decade views
+const featureColors = {
+  tempo:"#8a508f",
+  danceability:"#bc5090",
+  energy:"#de5a79",
+  acousticness:"#ff6361",
+  duration_ms:"#ff8531"
+};
+
+
+// Genre controls for genre view
+let currentYearRange = [1980, 2020];
+let selectedGenres = new Set(allGenreKeys); // Default: all genres selected
+
+function updateGenreChart() {
+  renderGenre([...selectedGenres], currentYearRange[0], currentYearRange[1]);
+}
+
+function buildGenreControls(selectedSet){
+  const wrap = d3.select("#leftContent");
+  wrap.selectAll("*").remove();
+
+  wrap.append("h4").text("Select genres to display");
+
+  // Row with All / None buttons
+  const actions = wrap.append("div").attr("class","ctl-row");
+
+  actions.append("button")
+    .attr("class","pill")
+    .text("All")
+    .on("click", () => {
+      selectedSet.clear();
+      allGenreKeys.forEach(k => selectedSet.add(k));
+      updateGenreChart();            
+      buildGenreControls(selectedSet); 
+    });
+
+  actions.append("button")
+    .attr("class","pill")
+    .text("None")
+    .on("click", () => {
+      selectedSet.clear();
+      updateGenreChart();             
+      buildGenreControls(selectedSet); 
+    });
+
+  const grid = wrap.append("div").attr("class","genre-grid");
+
+  const row = grid.selectAll("label.genre-item")
+    .data(allGenreKeys, d => d)
+    .join("label")
+    .attr("class","genre-item");
+
+  row.append("input")
+    .attr("type","checkbox")
+    .property("checked", d => selectedSet.has(d))
+    .on("change", function(evt, d){
+      if (this.checked) selectedSet.add(d);
+      else selectedSet.delete(d);
+      updateGenreChart();
+    });
+
+  row.append("span")
+    .attr("class","swatch")
+    .style("background", d => color(d));
+
+  row.append("span").text(d => d);
+}
+
+// year slider (feature view on right circle)
+function buildFeatureSlider(start=1980, end=2020, onChange){
+  const wrap = d3.select("#rightContent");
+  wrap.selectAll("*").remove();
+
+  wrap.append("div").attr("class","tiny")
+    .style("margin-bottom","8px")
+    .text("Year range");
+
+  const sliderWrap = wrap.append("div")
+    .style("display","flex")
+    .style("justify-content","center")
+    .style("align-items","center")
+    .style("width","100%");
+
+  const slider = sliderWrap.append("div")
+    .style("width","80%")
+    .style("height","36px")
+    .style("position","relative");
+
+  slider.append("div")
+    .style("position","absolute").style("left","0").style("right","0")
+    .style("top","50%").style("height","6px").style("transform","translateY(-50%)")
+    .style("background","#2b3c6f").style("border-radius","3px");
+
+  const rangeEl = slider.append("div")
+    .style("position","absolute").style("height","6px")
+    .style("background","#6ea8fe").style("border-radius","3px")
+    .style("top","50%").style("transform","translateY(-50%)");
+
+  const hMin = slider.append("div")
+    .style("position","absolute").style("width","16px").style("height","16px")
+    .style("background","#6ea8fe").style("border","1px solid rgba(255,255,255,.35)")
+    .style("border-radius","50%").style("top","50%")
+    .style("transform","translate(-50%,-50%)").style("cursor","pointer");
+
+  const hMax = slider.append("div")
+    .style("position","absolute").style("width","16px").style("height","16px")
+    .style("background","#6ea8fe").style("border","1px solid rgba(255,255,255,.35)")
+    .style("border-radius","50%").style("top","50%")
+    .style("transform","translate(-50%,-50%)").style("cursor","pointer");
+
+  const label = wrap.append("div").attr("class","tiny")
+    .style("margin-top","8px").style("text-align","center");
+
+  const minYear = d3.min(audioData, d=>d.year),
+        maxYear = d3.max(audioData, d=>d.year);
+  let yearStart=start, yearEnd=end;
+  const minGap=10;
+
+  const node = slider.node();
+  const sliderW = () => node.getBoundingClientRect().width;
+  const yearToX = y => ((y-minYear)/(maxYear-minYear))*sliderW();
+  const xToYear = x => Math.round(minYear + (x/sliderW())*(maxYear-minYear));
+
+  function update(){
+    const xMin = yearToX(yearStart), xMax = yearToX(yearEnd);
+    hMin.style("left", xMin+"px");
+    hMax.style("left", xMax+"px");
+    rangeEl.style("left", xMin+"px").style("width", (xMax-xMin)+"px");
+    label.text(`${yearStart} – ${yearEnd}`);
+    onChange(yearStart, yearEnd);
+  }
+
+  const dragMin = d3.drag().on("drag",(e)=>{
+    let x=e.x; x=Math.min(x, yearToX(yearEnd-minGap)); x=Math.max(0,x);
+    yearStart=xToYear(x); update();
+  });
+  const dragMax = d3.drag().on("drag",(e)=>{
+    let x=e.x; x=Math.max(x, yearToX(yearStart+minGap)); x=Math.min(sliderW(),x);
+    yearEnd=xToYear(x); update();
+  });
+
+  d3.select(hMin.node()).call(dragMin);
+  d3.select(hMax.node()).call(dragMax);
+  update();
+
+  d3.select(hMin.node()).call(dragMin);
+  d3.select(hMax.node()).call(dragMax);
+  update();
+
+ 
+  if (currentSliderResizeHandler) {
+    window.removeEventListener('resize', currentSliderResizeHandler);
+  }
+  currentSliderResizeHandler = () => update();
+  window.addEventListener('resize', currentSliderResizeHandler, { passive: true });
+}
+
+
+/* Decade comparison UI  */
+const decadeLabels = ["1980s","1990s","2000s","2010s"];
+
+function decadeRange(label){
+  const y0 = +label.slice(0,4);
+  return [y0, y0+9];
+}
+
+// get per-song samples for a feature within a decade (with ms -> s)
+function getFeatureSamplesForDecade(feature, decLabel, {preferPerSong=true} = {}){
+  const [y0,y1] = decadeRange(decLabel);
+  const years = new Set(Array.from({length: y1-y0+1}, (_,i)=>y0+i));
+  const out = [];
+
+  const songsObj = (typeof songsByYearData !== "undefined") ? songsByYearData : null;
+  const convert = v => feature === "duration_ms" ? v / 1000 : v;  
+
+  if (preferPerSong && songsObj){
+    for (const y of years){
+      const arr = songsObj[String(y)] || songsObj[y] || [];
+      for (const row of arr){
+        const raw = Number(row?.[feature]);
+        const v   = convert(raw);
+        if (Number.isFinite(v) && v !== 0) out.push(v);
+      }
+    }
+    if (out.length) return out;
+  }
+
+  if (typeof audioData !== "undefined" && Array.isArray(audioData)){
+    for (const d of audioData){
+      if (years.has(+d.year)){
+        const raw = Number(d?.[feature]);
+        const v   = convert(raw);
+        if (Number.isFinite(v) && v !== 0) out.push(v);
+      }
+    }
+  }
+  return out;
+}
+
+// simple percentile stats
+function boxStats(values){
+  const vs = values.filter(Number.isFinite).slice().sort((a,b)=>a-b);
+  const n = vs.length;
+  if (!n) return null;
+
+  const quant = p => {
+    const idx = (n-1)*p;
+    const lo = Math.floor(idx), hi = Math.ceil(idx);
+    if (lo === hi) return vs[lo];
+    const w = idx-lo;
+    return vs[lo]*(1-w) + vs[hi]*w;
+  };
+
+  const q1 = quant(0.25);
+  const median = quant(0.5);
+  const q3 = quant(0.75);
+  const min = vs[0];
+  const max = vs[n-1];
+  return {min,q1,median,q3,max,n};
+}
+
+// aggregate genre counts for a year range
+function aggGenreCounts(startY, endY){
+  const sums = {};
+  allGenreKeys.forEach(k=> sums[k]=0);
+  genreMini.forEach(row=>{
+    const y = +row.year;
+    if (y>=startY && y<=endY){
+      allGenreKeys.forEach(k=> sums[k] += (+row[k] || 0));
+    }
+  });
+  return allGenreKeys.map(k=> ({key:k, value:sums[k]}));
+}
+
+// Metric + decade pickers: left = metric, right = decades
+function buildDecadeMetricPanel(onChange){
+  
+  const leftWrap = d3.select("#leftContent");
+  leftWrap.selectAll("*").remove();
+  const metricRoot = leftWrap.append("div").attr("class","picker");
+
+  metricRoot.append("h4").text("Metric");
+  const metWrap = metricRoot.append("div").attr("class","grid-2");
+  const metrics = [
+    {k:"genre",       label:"Genre share"},
+    {k:"tempo",       label:"Tempo"},
+    {k:"danceability",label:"Danceability"},
+    {k:"energy",      label:"Energy"},
+    {k:"acousticness",label:"Acousticness"},
+    {k:"duration_ms", label:"Duration"}
+  ];
+  metrics.forEach(m=>{
+    const id = `met-${m.k}`;
+    const lab = metWrap.append("label").attr("class","opt");
+    lab.append("input")
+      .attr("type","radio").attr("name","metricPick").attr("id",id)
+      .attr("value",m.k).property("checked",m.k==="genre")
+      .on("change",changed);
+    lab.append("span").text(m.label);
+  });
+
+  // Right: decades
+  const rightWrap = d3.select("#rightContent");
+  rightWrap.selectAll("*").remove();
+  const decadeRoot = rightWrap.append("div").attr("class","picker");
+
+  decadeRoot.append("h4").text("Choose decades");
+  const decWrap = decadeRoot.append("div").attr("class","grid-2");
+  decadeLabels.forEach(lbl=>{
+    const id = `dec-${lbl}`;
+    const lab = decWrap.append("label").attr("class","opt");
+    lab.append("input").attr("type","checkbox").attr("id", id).on("change", changed);
+    lab.append("span").text(lbl);
+  });
+
+  // default: three decades
+  d3.select("#dec-1980s").property("checked",true);
+  d3.select("#dec-1990s").property("checked",true);
+  d3.select("#dec-2010s").property("checked",true);
+
+  function state(){
+    const decades = decadeLabels.filter(lbl => d3.select(`#dec-${lbl}`).property("checked"));
+    const metric = d3.select('input[name="metricPick"]:checked').attr("value");
+    return {decades, metric};
+  }
+  function changed(){ onChange(state()); }
+  onChange(state());
+}
+
+// DECADE RENDERERS 
+function renderGenrePiesForDecades(decades, visibleGenres){
+  clearChart();
+  if (!decades.length){
+    g.append("text").attr("x", width/2).attr("y", height/2)
+      .attr("text-anchor","middle").style("fill","#e8edf7")
+      .text("Pick one or more decades.");
+    return;
+  }
+
+  const cols = (decades.length === 4) ? 2 : Math.min(3, decades.length);
+  const rows = Math.ceil(decades.length / cols);
+  const padX = 60, padY = 60;
+  const cellW = (width  - padX*2) / cols;
+  const cellH = (height - padY*2) / rows;
+  const radius = Math.min(cellW, cellH) * 0.35;
+
+  const pie = d3.pie().value(d=>d.value).sort(null);
+  const arc = d3.arc().innerRadius(0).outerRadius(radius).cornerRadius(4);
+
+  const pies = [];
+
+  decades.forEach((dec, idx)=>{
+    const c = idx % cols, r = Math.floor(idx / cols);
+    const cx = padX + c*cellW + cellW/2;
+    const cy = padY + r*cellH + cellH/2;
+
+    const [y0,y1] = decadeRange(dec);
+    const data = aggGenreCounts(y0,y1).filter(d => visibleGenres.includes(d.key));
+    const total = d3.sum(data, d=>d.value) || 1;
+
+    const gp = g.append("g").attr("transform",`translate(${cx},${cy})`);
+
+    gp.selectAll("path")
+      .data(pie(data))
+      .join("path")
+      .attr("class","slice")
+      .attr("d", arc)
+      .attr("fill", d => color(d.data.key))
+      .attr("stroke", "#0b1220").attr("stroke-width", 1.2)
+      .style("cursor","pointer")
+      .on("mousemove",(ev,d)=>{
+        chartTip.style("opacity",1)
+          .html(`<strong>${dec}</strong><br>${d.data.key}: ${(100*d.data.value/total).toFixed(1)}%`)
+          .style("left",(ev.pageX+10)+"px")
+          .style("top",(ev.pageY-28)+"px");
+      })
+      .on("mouseout",()=> chartTip.style("opacity",0))
+      .on("click",(_,d)=>{
+        linkedState.activeGenre =
+          (linkedState.activeGenre === d.data.key) ? null : d.data.key;
+        syncGenreAcrossPies();
+      });
+
+    g.append("text")
+      .attr("x",cx).attr("y",cy - radius - 10)
+      .attr("text-anchor","middle")
+      .style("fill","#e8edf7").style("font-size","14px")
+      .text(dec);
+
+    pies.push({dec, group:gp, data, total});
+  });
+
+  // wrapped legend at bottom
+  const legendKeys = visibleGenres;
+  const sw=9, fs=11, padx=8, itemPad=12;
+  const maxW = width - 40;
+  const baseY = height - 16;
+  const estTextW = s => Math.ceil(s.length * (fs*0.62));
+  let xCursor=0, row=0;
+
+  legendKeys.forEach(k=>{
+    const labelW = estTextW(k);
+    const itemW = sw + padx + labelW + itemPad;
+    if (xCursor + itemW > maxW){ row+=1; xCursor=0; }
+    const y = baseY + row*16;
+    g.append("rect")
+      .attr("x",xCursor).attr("y",y-sw+1)
+      .attr("width",sw).attr("height",sw)
+      .attr("rx",2).attr("fill",color(k));
+    g.append("text")
+      .attr("x",xCursor+sw+padx).attr("y",y)
+      .text(k).style("fill","#e8edf7").style("font-size",fs);
+    xCursor += itemW;
+  });
+
+  function syncGenreAcrossPies(){
+    g.selectAll(".genre-focus-label").remove();
+    g.selectAll("path.slice").attr("opacity",1);
+
+    const k = linkedState.activeGenre;
+    if (!k) return;
+
+    g.selectAll("path.slice").attr("opacity",d => (d.data.key===k ? 1 : 0.25));
+
+    pies.forEach(({group,data,total})=>{
+      const v = (data.find(x=>x.key===k)?.value) || 0;
+      const pct = (100*v/total).toFixed(1) + "%";
+      group.append("text")
+        .attr("class","genre-focus-label")
+        .attr("y", radius + 22)
+        .attr("text-anchor","middle")
+        .style("fill","#e8edf7")
+        .style("font-size","12px")
+        .text(`${k}: ${pct}`);
+    });
+  }
+
+  if (linkedState.activeGenre) syncGenreAcrossPies();
+}
+
+function renderFeatureBoxplotsForDecades(decades, feature){
+  clearChart();
+  if (!decades.length){
+    g.append("text").attr("x",width/2).attr("y",height/2)
+      .attr("text-anchor","middle").style("fill","#e8edf7")
+      .text("Pick one or more decades.");
+    return;
+  }
+
+  const stats = decades.map(dec=>{
+    const vals = getFeatureSamplesForDecade(feature, dec);
+    const s = vals.length ? boxStats(vals) : null;
+    return {dec,s};
+  }).filter(d=>d.s);
+
+  // const yMin = d3.min(stats, d=>d.s.min),
+  //       yMax = d3.max(stats, d=>d.s.max);
+  // const y = d3.scaleLinear().domain([yMin,yMax]).nice().range([height,0]);
+  const yMax = d3.max(stats, d => d.s.max);
+  let yLower = 0;
+
+  // For [0,1] features, still okay to start at 0 and cap near 1
+  if (["danceability","energy","acousticness"].includes(feature)) {
+    yLower = 0;
+  }
+
+const y = d3.scaleLinear()
+  .domain([yLower, yMax])
+  .nice()
+  .range([height, 0]);
+  const x = d3.scaleBand().domain(stats.map(d=>d.dec)).range([60,width-20]).padding(0.25);
+  const boxW = Math.min(60, x.bandwidth()*0.8);
+
+  g.append("g").attr("transform",`translate(0,${height})`).call(d3.axisBottom(x));
+  g.append("g").call(d3.axisLeft(y));
+
+  const fmt = v => (
+    ["danceability","energy","acousticness"].includes(feature) ? v.toFixed(3) :
+    feature === "tempo"       ? v.toFixed(1) :
+    feature === "duration_ms" ? v.toFixed(0) + " s" :
+    Math.round(v)
+  );
+
+  function drawLabel(xc,yc,text,cls="stat"){
+    g.append("text")
+      .attr("class",`${cls}-label`)
+      .attr("x",xc).attr("y",yc-4)
+      .attr("text-anchor","middle")
+      .style("fill","#fff").style("font-size","12px")
+      .style("font-weight","600")
+      .style("paint-order","stroke")
+      .style("stroke","#0b1220")
+      .style("stroke-width","0.8px")
+      .style("stroke-opacity",0.6)
+      .style("pointer-events","none")
+      .text(text);
+  }
+
+  function toggleStat(type){
+    linkedState.showStats[type] = !linkedState.showStats[type];
+    syncAllStatLabels();
+  }
+
+  function syncAllStatLabels(){
+    g.selectAll(".stat-label").remove();
+    const enabled = linkedState.showStats;
+    const offset = {min:-8,q1:-8,median:-8,q3:-8,max:-8};
+
+    Object.entries(enabled).forEach(([type,on])=>{
+      if (!on) return;
+      stats.forEach(({dec,s})=>{
+        const cx = x(dec)+x.bandwidth()/2;
+        const val = s[type];
+        const cy  = y(val)+offset[type];
+        drawLabel(cx,cy,`${type}: ${fmt(val)}`,"stat");
+      });
+    });
+  }
+
+  stats.forEach(({dec,s})=>{
+    const cx = x(dec)+x.bandwidth()/2;
+    const yMinPx = y(s.min), yMaxPx = y(s.max);
+    const yQ1Px  = y(s.q1),  yQ3Px  = y(s.q3);
+    const yMedPx = y(s.median);
+
+    g.append("line")
+      .attr("x1",cx).attr("x2",cx)
+      .attr("y1",yMinPx).attr("y2",yMaxPx)
+      .attr("stroke","rgba(255,255,255,.6)");
+
+    g.append("rect")
+      .attr("x",cx-boxW/2).attr("width",boxW)
+      .attr("y",yQ3Px).attr("height",yQ1Px-yQ3Px)
+      .attr("fill",featureColors[feature] || "#60a5fa")
+      .attr("opacity",0.75)
+      .attr("stroke","#0b1220").attr("stroke-width",1.2);
+
+    g.append("line")
+      .attr("x1",cx-boxW/3).attr("x2",cx+boxW/3)
+      .attr("y1",yMinPx).attr("y2",yMinPx)
+      .attr("stroke","rgba(255,255,255,.7)");
+    g.append("line")
+      .attr("x1",cx-boxW/3).attr("x2",cx+boxW/3)
+      .attr("y1",yMaxPx).attr("y2",yMaxPx)
+      .attr("stroke","rgba(255,255,255,.7)");
+
+    g.append("line")
+      .attr("x1",cx-boxW/2).attr("x2",cx+boxW/2)
+      .attr("y1",yMedPx).attr("y2",yMedPx)
+      .attr("stroke","#0b1220").attr("stroke-width",2.2)
+      .style("cursor","pointer")
+      .on("click",()=>toggleStat("median"));
+
+    const hitH = 12;
+    g.append("rect")
+      .attr("x",cx-boxW/2).attr("width",boxW)
+      .attr("y",yMinPx-hitH/2).attr("height",hitH)
+      .attr("fill","transparent").style("cursor","pointer")
+      .on("click",()=>toggleStat("min"));
+    g.append("rect")
+      .attr("x",cx-boxW/2).attr("width",boxW)
+      .attr("y",yMaxPx-hitH/2).attr("height",hitH)
+      .attr("fill","transparent").style("cursor","pointer")
+      .on("click",()=>toggleStat("max"));
+    g.append("rect")
+      .attr("x",cx-boxW/2).attr("width",boxW)
+      .attr("y",yQ1Px-hitH/2).attr("height",hitH)
+      .attr("fill","transparent").style("cursor","pointer")
+      .on("click",()=>toggleStat("q1"));
+    g.append("rect")
+      .attr("x",cx-boxW/2).attr("width",boxW)
+      .attr("y",yQ3Px-hitH/2).attr("height",hitH)
+      .attr("fill","transparent").style("cursor","pointer")
+      .on("click",()=>toggleStat("q3"));
+  });
+
+  g.append("text")
+    .attr("transform","rotate(-90)")
+    .attr("x",-height/2).attr("y",-40)
+    .attr("text-anchor","middle")
+    .style("fill","#e8edf7")
+    .text(feature==="duration_ms" ? "Duration (s)" : feature);
+
+  syncAllStatLabels();
+}
+
+// wrapper for decade comparison view
+function showDecadeComparison(){
+  linkedState.activeGenre = linkedState.activeGenre || null;
+
+  buildDecadeMetricPanel(({decades, metric})=>{
+    if (metric === "genre"){
+      renderGenrePiesForDecades(decades, allGenreKeys);
+    } else {
+      renderFeatureBoxplotsForDecades(decades, metric);
+    }
+    const titleMetric = prettyMetricName(metric);
+    setChartTitle(`Decade Comparison — ${titleMetric}`);
+  });
+}
+
+// NON-DECADE RENDERERS 
+function renderGenre(selectedKeys, startYear=1980, endYear=2020){
+  clearChart();
+  const keys = selectedKeys.length ? selectedKeys : [];
+
+  const data = genreMini.filter(d => d.year >= startYear && d.year <= endYear);
+
+  const x = d3.scaleBand()
+    .domain(data.map(d => d.year))
+    .range([0, width])
+    .padding(0.2);
+
+  let yMax = 10;
+
+  if (keys.length && data.length){
+    const stacked = d3.stack().keys(keys)(data);
+    yMax = 10;
+    const y = d3.scaleLinear().domain([0, yMax]).nice().range([height, 0]);
+
+    g.append("g").attr("transform", `translate(0,${height})`)
+      .call(d3.axisBottom(x).tickValues(x.domain().filter((d,i)=>!(i%5))));
+    g.append("g").call(d3.axisLeft(y));
+
+    const groups = g.selectAll("g.layer")
+      .data(stacked, s=>s.key)
+      .join(
+        enter => enter.append("g").attr("class","layer").attr("fill",s=>color(s.key)),
+        update => update.attr("fill",s=>color(s.key)),
+        exit => exit.remove()
+      );
+
+    groups.selectAll("rect")
+      .data(d=>d, d=>d.data.year)
+      .join(
+        enter => enter.append("rect")
+          .attr("x", d=>x(d.data.year))
+          .attr("y", d=>y(d[1]))
+          .attr("height", d=>y(d[0])-y(d[1]))
+          .attr("width", x.bandwidth())
+          .on("mousemove",(event,d)=>{
+            const genre = d3.select(event.currentTarget.parentNode).datum().key;
+            const count = d.data[genre];
+            chartTip.style("opacity",1)
+              .html(`<strong>Year:</strong> ${d.data.year}<br/><strong>Genre:</strong> ${genre}<br/><strong>Count:</strong> ${count}`)
+              .style("left",(event.pageX+10)+"px")
+              .style("top",(event.pageY-28)+"px");
+          })
+          .on("mouseout",()=> chartTip.style("opacity",0)),
+        update => update
+          .transition().duration(250)
+          .attr("x", d=>x(d.data.year))
+          .attr("y", d=>y(10))
+          .attr("height", d=>y(d[0])-y(d[1]))
+          .attr("width", x.bandwidth()),
+        exit => exit.remove()
+      );
+
+  } else {
+    const y = d3.scaleLinear().domain([0, yMax]).range([height,0]);
+    g.append("g").attr("transform",`translate(0,${height})`)
+      .call(d3.axisBottom(x).tickValues(x.domain().filter((d,i)=>!(i%5))));
+    g.append("g").call(d3.axisLeft(y));
+  }
+
+  // Axis + Titles
+  g.append("text")
+    .attr("class","x-axis-label")
+    .attr("x", width / 2)
+    .attr("y", height + 44)
+    .attr("text-anchor","middle")
+    .style("fill","#e8edf7")
+    .style("font-size","16px")
+    .text("Year");
+
+  g.append("text")
+    .attr("class","y-axis-label")
+    .attr("transform","rotate(-90)")
+    .attr("x", -height / 2)
+    .attr("y", -35)
+    .attr("text-anchor","middle")
+    .style("fill","#e8edf7")
+    .style("font-size","16px")
+    .text("Number of Songs in Top 10");
+
+  setChartTitle("Top-10 Genre Mix By Year");
+}
+
+function renderGenreWithSlider(startYear, endYear){
+  currentYearRange = [startYear, endYear];
+  renderGenre([...selectedGenres], startYear, endYear);
+}
+
+// descriptions for features 
+const featureDescriptions = {
+  danceability: `Danceability describes how suitable a track is for dancing, based on musical elements like tempo, rhythm stability, and overall regularity. The score ranges from 0.0 (least danceable) to 1.0 (most danceable).`,
+  tempo: `Tempo represents the speed of a track in beats per minute (BPM). Higher tempo usually means faster, more energetic music.`,
+  energy: `Energy measures the intensity and activity of a track. Higher energy tracks are fast, loud, and dynamic. Lower energy tracks are calmer and softer.`,
+  acousticness: `Acousticness assesses the amount of live instrumentation in a track. Higher values indicate more live instrumentation and lower values indicate more electronic processing.`,
+  duration_ms: `Duration is the length of a track in seconds.`
+};
+
+function updateFeatureDescription(feature) {
+  const leftWrap = d3.select("#leftContent");
+  leftWrap.selectAll("*").remove();
+
+  if (featureDescriptions[feature]) {
+    leftWrap.append("h4").text(featureLabel[feature] || feature);
+    leftWrap.append("p")
+      .style("color","#e8edf7")
+      .style("font-size","12px")
+      .style("line-height","1.4em")
+      .text(featureDescriptions[feature]);
+  }
+}
+
+// FEATURE CHARTS 
+function renderFeatureRange(feature="tempo", startYear=1980, endYear=2020){
+  clearChart();
+
+  updateFeatureDescription(feature);
+
+  let data = audioData
+    .filter(d => d.year >= startYear && d.year <= endYear)
+    .map(d => ({...d, duration_sec: d.duration_ms / 1000}));
+
+  const x = d3.scaleLinear().domain([startYear,endYear]).range([0,width]);
+  
+  const rawFeature = (feature === "duration_ms") ? "duration_sec" : feature;
+  //const yMin = d3.min(data, d => d[rawFeature]);
+  // const yMax = d3.max(data, d => d[rawFeature]);
+
+  // let padMin = yMin * 0.95;
+  // let padMax = yMax * 1.05;
+  // if (["danceability","energy","acousticness"].includes(feature)){
+  //   padMin = Math.max(0, yMin - 0.05);
+  //   padMax = Math.min(1, yMax + 0.05);
+  // }
+
+  // const y = d3.scaleLinear().domain([padMin,padMax]).range([height,0]);
+  const yMin = d3.min(data, d => d[rawFeature]);
+  const yMax = d3.max(data, d => d[rawFeature]);
+
+  let padMin = 0;              // <-- always start from 0
+  let padMax = yMax * 1.05;    
+
+  // For [0,1] features, clamp to 1
+  if (["danceability","energy","acousticness"].includes(feature)) {
+    padMin = 0;
+    padMax = Math.min(1, yMax + 0.05);
+  }
+
+const y = d3.scaleLinear()
+  .domain([padMin, padMax])
+  .range([height, 0])
+  .nice();
+
+  g.append("g").attr("transform",`translate(0,${height})`)
+    .call(d3.axisBottom(x).tickFormat(d3.format("d")));
+  g.append("g").call(d3.axisLeft(y));
+
+  // Axis Titles + Chart title
+  const labelKey = feature === "duration_ms" ? "durationms" : feature;
+  const baseLabel = featureLabel[labelKey] || feature;
+
+  let yLabel = baseLabel;
+  if (feature === "tempo")       yLabel = "Tempo (BPM)";
+  if (feature === "duration_ms") yLabel = "Duration (s)";
+
+  g.append("text")
+    .attr("class","x-axis-label")
+    .attr("x", width / 2)
+    .attr("y", height + 44)
+    .attr("text-anchor","middle")
+    .style("fill","#e8edf7")
+    .style("font-size","16px")
+    .text("Year");
+
+  g.append("text")
+    .attr("class","y-axis-label")
+    .attr("transform","rotate(-90)")
+    .attr("x", -height / 2)
+    .attr("y", -35)
+    .attr("text-anchor","middle")
+    .style("fill","#e8edf7")
+    .style("font-size","16px")
+    .text(yLabel);
+
+  setChartTitle(`Average ${baseLabel} of Top-10 Songs By Year`);
+
+  const area = d3.area()
+    .x(d=>x(d.year))
+    .y0(height)
+    .y1(d=>y(d[rawFeature]))
+    .curve(d3.curveMonotoneX);
+
+  g.append("path")
+    .datum(data)
+    .attr("fill",featureColors[feature] || "#60a5fa")
+    .attr("opacity",0.8)
+    .attr("d",area);
+
+  g.selectAll(".dot")
+    .data(data)
+    .enter()
+    .append("circle")
+    .attr("class","dot")
+    .attr("cx",d=>x(d.year))
+    .attr("cy",d=>y(d[rawFeature]))
+    .attr("r",4)
+    .attr("fill","#000")
+    .attr("stroke","#fff")
+    .on("mouseover",function(event,d){
+      const yr = d.year;
+      const avgForYear = d[feature];
+      const rows = songsByYear.get(yr) || [];
+      const top10 = rows.slice(0,10);
+
+      if (!songsReady){
+        const label = featureLabel[feature] || feature;
+        const avgText = formatFeatureValue(feature, avgForYear);
+        chartTip.style("opacity",1)
+          .html(`<div><strong>${yr} — ${label}</strong><br/>Average: ${avgText}<br/><em>Loading top songs…</em></div>`)
+          .style("left",(event.pageX+10)+"px")
+          .style("top",(event.pageY-28)+"px");
+        return;
+      }
+      const html = buildTooltipHtml(yr, feature, avgForYear, top10);
+      chartTip.style("opacity",1).html(html).style("left",(event.pageX+10)+"px").style("top",(event.pageY-28)+"px");
+    })
+    .on("mouseout",()=> chartTip.style("opacity",0));
+}
+
+
+function onYearSliderChange(minYear, maxYear) {
+  currentYearRange = [minYear, maxYear];
+  updateGenreChart();
+}
+
+// VIEW ROUTER
+window.onload = () => {
+  let currentView = 'genre';
+  const svgButtons = document.querySelectorAll('#boombox-bg rect[data-view]');
+  let activeButton = null;
+
+  function setView(view) {
+    currentView = view;
+
+    // Highlight active button
+    svgButtons.forEach(btn => {
+      if (btn.dataset.view === view) {
+        btn.setAttribute('stroke', '#a78bfa');
+        btn.setAttribute('stroke-width', '3');
+        activeButton = btn;
+      } else {
+        btn.setAttribute('stroke', null);
+        btn.setAttribute('stroke-width', null);
+      }
+    });
+
+    clearChart();
+    d3.select('#leftContent').selectAll('*').remove();
+    d3.select('#rightContent').selectAll('*').remove();
+
+    if (view === 'genre') {
+      buildGenreControls(selectedGenres);
+      buildFeatureSlider(1980, 2020, onYearSliderChange);
+      updateGenreChart();
+    } else if (view === 'decade') {
+    
+      if (currentSliderResizeHandler) {
+        window.removeEventListener('resize', currentSliderResizeHandler);
+        currentSliderResizeHandler = null;
+      }
+      showDecadeComparison();
+    } else {
+      
+      buildFeatureSlider(1980, 2020, (minYear, maxYear) => renderFeatureRange(view, minYear, maxYear));
+      renderFeatureRange(view, 1980, 2020);
+    }
+  }
+
+  svgButtons.forEach(btn => {
+    btn.style.cursor = 'pointer';
+    btn.addEventListener('click', () => setView(btn.dataset.view));
+  });
+
+  setView('genre');
+};
+
+</script>
+</body>
+</html>
