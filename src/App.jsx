@@ -8,10 +8,11 @@ import LeftCircle from './components/LeftCircle.jsx';
 import RightCircle from './components/RightCircle.jsx';
 
 async function loadData() {
+  const base = import.meta.env.BASE_URL;
   const [rawAudio, rawGenre, rawSongs] = await Promise.all([
-    d3.csv('/data/audio_features.csv', d3.autoType),
-    d3.csv('/data/genre_counts.csv', d3.autoType),
-    d3.csv('/data/songs_by_year.csv', d3.autoType),
+    d3.csv(`${base}data/audio_features.csv`, d3.autoType),
+    d3.csv(`${base}data/genre_counts.csv`, d3.autoType),
+    d3.csv(`${base}data/songs_by_year.csv`, d3.autoType),
   ]);
 
   const songsByYear = d3.group(rawSongs, d => d.year);
