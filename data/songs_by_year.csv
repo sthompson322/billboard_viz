@@ -1,0 +1,406 @@
+year,rank,track_name,artist_name,danceability,acousticness,energy,tempo,duration_ms
+1980,1,Call Me,Blondie,0.554,0.000646,0.833,142.673,212227
+1980,2,Another Brick in the Wall Part II,Pink Floyd,0.693,0.0782,0.394,104.114,238747
+1980,3,Magic,Olivia Newton-John,0.7,0.123,0.504,103.88,269307
+1980,4,Rock with You,Michael Jackson,0.808,0.179,0.535,114.031,220627
+1980,5,Do That to Me One More Time,Captain & Tennille,0.599,0.714,0.762,76.961,163373
+1980,6,Crazy Little Thing Called Love,Queen,0.599,0.714,0.762,76.961,163373
+1980,7,Coming Up,Paul McCartney,,,,,
+1980,8,Funkytown,Lipps Inc.,,,,,
+1980,9,It's Still Rock and Roll to Me,Billy Joel,0.752,0.0994,0.684,141.075,176440
+1980,10,The Rose,Bette Midler,0.258,0.94,0.0971,65.346,215027
+1981,1,Bette Davis Eyes,Kim Carnes,0.675,0.0204,0.649,116.624,228000
+1981,2,Endless Love,"Diana Ross & Lionel Richie",0.456,0.665,0.332,93.633,266267
+1981,3,Lady,Kenny Rogers,0.488,0.747,0.232,140.173,231040
+1981,4,(Just Like) Starting Over,John Lennon,0.701,0.301,0.79,99.104,236547
+1981,5,Jessie's Girl,Rick Springfield,0.727,0.164,0.832,131.703,194120
+1981,6,Celebration,Kool & the Gang,0.885,0.146,0.664,121.633,298867
+1981,7,Kiss on My List,Daryl Hall & John Oates,0.815,0.434,0.741,121.221,264987
+1981,8,I Love a Rainy Night,Eddie Rabbitt,0.689,0.0978,0.742,131.474,189320
+1981,9,9 To 5,Dolly Parton,0.554,0.416,0.783,105.39,162467
+1981,10,Keep on Loving You,REO Speedwagon,0.306,0.0519,0.722,174.732,200293
+1982,1,Physical,Olivia Newton-John,0.834,0.0631,0.633,123.815,224773
+1982,2,Eye of the Tiger,Survivor,0.817,0.132,0.599,108.873,245640
+1982,3,I Love Rock 'n Roll,Joan Jett & The Blackhearts,0.535,0.326,0.716,94.379,175173
+1982,4,Ebony and Ivory,Paul McCartney and Stevie Wonder,0.567,0.0784,0.692,160.697,226267
+1982,5,Centerfold,The J. Geils Band,0.653,0.249,0.677,114.37,216533
+1982,6,Don't You Want Me,The Human League,0.731,0.184,0.738,117.656,236920
+1982,7,Jack & Diane,John Cougar,0.811,0.0365,0.41,103.94,254493
+1982,8,Hurts So Good,John Cougar,,,,,
+1982,9,Abracadabra,Steve Miller Band,,,,,
+1982,10,Hard to Say I'm Sorry,Chicago,0.398,0.056,0.57,140.974,304213
+1983,1,Every Breath You Take,The Police,0.82,0.543,0.452,117.401,253920
+1983,2,Billie Jean,Michael Jackson,0.932,0.0173,0.457,117.002,294227
+1983,3,Flashdance... What a Feeling,Irene Cara,0.572,0.00579,0.655,122.49,237053
+1983,4,Down Under,Men at Work,0.739,0.129,0.459,107.115,222320
+1983,5,Beat It,Michael Jackson,0.776,0.0242,0.711,138.728,258400
+1983,6,Total Eclipse of the Heart,Bonnie Tyler,0.435,0.195,0.658,130.276,269787
+1983,7,Maneater,Daryl Hall & John Oates,0.687,0.0234,0.697,88.714,270733
+1983,8,Baby Come to Me,Patti Austin and James Ingram,,,,,
+1983,9,Maniac,Michael Sembello,0.617,0.0891,0.533,158.86,244707
+1983,10,Sweet Dreams (Are Made of This),Eurythmics,0.692,0.225,0.711,125.135,216933
+1984,1,When Doves Cry,Prince,0.729,0.0102,0.989,126.47,352906
+1984,2,What's Love Got to Do with It,Tina Turner,0.75,0.275,0.664,105.023,208156
+1984,3,Say Say Say,Paul McCartney and Michael Jackson,,,,,
+1984,4,Footloose,Kenny Loggins,0.546,0.0819,0.895,174.089,220707
+1984,5,Against All Odds (Take a Look at Me Now),Phil Collins,0.581,0.198,0.498,116.262,206360
+1984,6,Jump,Van Halen,0.572,0.171,0.835,129.994,241600
+1984,7,Hello,Lionel Richie,0.487,0.414,0.246,61.084,251107
+1984,8,Owner of a Lonely Heart,Yes,0.744,0.175,0.798,125.061,268507
+1984,9,Ghostbusters,Ray Parker Jr.,0.782,0.0307,0.567,115.71,245973
+1984,10,Karma Chameleon,Culture Club,0.668,0.225,0.73,92.049,252773
+1985,1,Careless Whisper,Wham!,,,,,
+1985,2,Like a Virgin,Madonna,0.773,0.202,0.656,119.754,218627
+1985,3,Wake Me Up Before You Go-Go,Wham!,0.62,0.271,0.573,81.548,231333
+1985,4,I Want to Know What Love Is,Foreigner,0.477,0.193,0.471,81.204,304787
+1985,5,I Feel for You,Chaka Khan,0.698,0.0145,0.912,124.916,343400
+1985,6,Out of Touch,Daryl Hall & John Oates,0.806,0.0391,0.649,114.834,249573
+1985,7,Everybody Wants to Rule the World,Tears for Fears,0.645,0.347,0.795,112.067,251489
+1985,8,Money for Nothing,Dire Straits,0.667,0.0491,0.655,134.212,506400
+1985,9,Crazy for You,Madonna,0.704,0.422,0.288,118.013,184867
+1985,10,Take On Me,a-ha,0.573,0.018,0.902,84.412,225280
+1986,1,That's What Friends Are For,"Dionne and Friends (Dionne Warwick,Gladys Knight,Elton John and Stevie Wonder)",0.673,0.294,0.286,120.117,256467
+1986,2,Say You Say Me,Lionel Richie,0.636,0.355,0.405,128.068,241067
+1986,3,I Miss You,Klymaxx,0.655,0.00103,0.781,110.024,227240
+1986,4,On My Own,Patti LaBelle and Michael McDonald,,,,,
+1986,5,Broken Wings,Mr. Mister,0.286,0.134,0.5,99.162,343933
+1986,6,How Will I Know,Whitney Houston,0.832,0.201,0.544,119.49,275533
+1986,7,Party All the Time,Eddie Murphy,0.699,0.0098,0.696,135.027,253293
+1986,8,Burning Heart,Survivor,0.651,0.221,0.665,97.996,230720
+1986,9,Kyrie,Mr. Mister,0.489,0.287,0.676,89.735,256960
+1986,10,Addicted to Love,Robert Palmer,0.702,0.382,0.578,111.617,363640
+1987,1,Walk Like An Egyptian,The Bangles,0.724,0.00344,0.891,103.022,204707
+1987,2,Alone,Heart,0.631,0.0241,0.953,141.99,273803
+1987,3,Shake You Down,Gregory Abbott,0.787,0.523,0.474,94.995,245413
+1987,4,I Wanna Dance with Somebody (Who Loves Me),Whitney Houston,0.709,0.207,0.824,118.818,291293
+1987,5,Nothing's Gonna Stop Us Now,Starship,0.643,0.0298,0.801,95.988,270333
+1987,6,C'est La Vie,Robbie Nevil,0.726,0.559,0.809,102.123,270307
+1987,7,Here I Go Again,Whitesnake,0.292,0.0117,0.823,89.939,275395
+1987,8,The Way It Is,Bruce Hornsby and the Range,0.582,0.607,0.689,111.166,297853
+1987,9,Shakedown,Bob Seger,,,,,
+1987,10,Livin' on a Prayer,Bon Jovi,0.534,0.0687,0.865,122.497,245933
+1988,1,Faith,George Michael,0.393,0.263,0.547,129.677,266267
+1988,2,Need You Tonight,INXS,0.801,0.0713,0.723,109.03,180518
+1988,3,Got My Mind Set on You,George Harrison,0.767,0.465,0.854,149.206,234653
+1988,4,Never Gonna Give You Up,Rick Astley,0.72,0.114,0.987,113.335,213147
+1988,5,Sweet Child o' Mine,Guns N' Roses,0.445,0.09,0.952,125.304,356067
+1988,6,So Emotional,Whitney Houston,0.698,0.271,0.791,119.081,276667
+1988,7,Heaven Is a Place on Earth,Belinda Carlisle,0.64,0.031,0.81,122.868,247293
+1988,8,Could've Been,Tiffany,0.45,0.649,0.352,102.679,252747
+1988,9,Hands to Heaven,Breathe,0.543,0.242,0.384,128.768,259507
+1988,10,Roll with It,Steve Winwood,0.759,0.07,0.645,117.254,320733
+1989,1,Look Away,Chicago,0.553,0.385,0.545,85.959,242960
+1989,2,My Prerogative,Bobby Brown,0.753,0.0657,0.62,110.172,291560
+1989,3,Every Rose Has Its Thorn,Poison,0.533,0.16,0.637,140.167,260173
+1989,4,Straight Up,Paula Abdul,0.769,0.267,0.826,95.862,251467
+1989,5,Miss You Much,Janet Jackson,0.702,0.0305,0.975,115.185,252333
+1989,6,Cold Hearted,Paula Abdul,0.879,0.149,0.679,122.38,231400
+1989,7,Wind Beneath My Wings,Bette Midler,0.51,0.551,0.458,123.694,293853
+1989,8,Girl You Know It's True,Milli Vanilli,0.772,0.00797,0.822,97.718,198573
+1989,9,Baby I Love Your Way/Freebird Medley,Will to Power,,,,,
+1989,10,Giving You the Best That I Got,Anita Baker,0.644,0.819,0.447,105.699,260507
+1990,1,Hold On,Wilson Phillips,0.679,0.4,0.657,97.8,266867
+1990,2,It Must Have Been Love,Roxette,0.52,0.34,0.652,80.609,258787
+1990,3,Nothing Compares 2 U,Sinéad O'Connor,,,,,
+1990,4,Poison,Bell Biv DeVoe,0.84,0.00195,0.56,111.815,261853
+1990,5,Vogue,Madonna,0.737,0.00379,0.88,115.998,316813
+1990,6,Vision of Love,Mariah Carey,0.256,0.433,0.464,205.362,209293
+1990,7,Another Day in Paradise,Phil Collins,0.78,0.736,0.565,101.967,322133
+1990,8,Hold On,En Vogue,0.728,0.0865,0.464,96.944,304467
+1990,9,Cradle of Love,Billy Idol,,,,,
+1990,10,Blaze of Glory,Jon Bon Jovi,,,,,
+1991,1,(Everything I Do) I Do It for You,Bryan Adams,0.526,0.0775,0.365,131.253,394133
+1991,2,I Wanna Sex You Up,Color Me Badd,0.553,0.00532,0.702,201.868,240200
+1991,3,Gonna Make You Sweat (Everybody Dance Now),C+C Music Factory,0.557,0.0018,0.74,114.379,243693
+1991,4,Rush Rush,Paula Abdul,0.706,0.763,0.44,90.012,292933
+1991,5,One More Try,Timmy T,,,,,
+1991,6,Unbelievable,EMF,0.637,0.000341,0.849,104.074,209813
+1991,7,More Than Words,Extreme,0.626,0.467,0.134,91.893,334107
+1991,8,I Like the Way (The Kissing Game),Hi-Five,,,,,
+1991,9,The First Time,Surface,0.637,0.215,0.354,126.435,256000
+1991,10,Baby Baby,Amy Grant,0.728,0.0401,0.859,65.043,214240
+1992,1,End of the Road,Boyz II Men,0.641,0.0666,0.428,149.705,351467
+1992,2,Baby Got Back,Sir Mix-a-Lot,0.932,0.00595,0.76,128.492,261933
+1992,3,Jump,Kris Kross,0.749,0.000501,0.745,101.972,195107
+1992,4,Save the Best for Last,Vanessa Williams,0.528,0.641,0.234,95.911,218733
+1992,5,Baby-Baby-Baby,TLC,0.679,0.0913,0.597,184.174,315040
+1992,6,Tears in Heaven,Eric Clapton,0.695,0.8,0.336,79.109,280000
+1992,7,My Lovin' (You're Never Gonna Get It),En Vogue,0.767,0.0318,0.839,98.055,281613
+1992,8,Under the Bridge,Red Hot Chili Peppers,0.559,0.0576,0.345,84.581,264307
+1992,9,All 4 Love,Color Me Badd,0.807,0.0347,0.75,106.389,211493
+1992,10,Just Another Day,Jon Secada,0.717,0.0194,0.642,105.894,327427
+1993,1,I Will Always Love You,Whitney Houston,0.306,0.844,0.214,66.98,271093
+1993,2,Whoomp! (There It Is),Tag Team,0.8,0.00123,0.639,129.443,226027
+1993,3,Can't Help Falling in Love,UB40,,,,,
+1993,4,That's the Way Love Goes,Janet Jackson,0.703,0.302,0.7,97.675,265107
+1993,5,Freak Me,Silk,0.697,0.0295,0.608,133.879,274533
+1993,6,Weak,SWV,0.693,0.107,0.533,127.661,291907
+1993,7,If I Ever Fall in Love,Shai,0.67,0.638,0.326,128.015,299479
+1993,8,Dreamlover,Mariah Carey,0.701,0.18,0.705,100.669,232960
+1993,9,Rump Shaker,Wreckx-n-Effect,0.888,0.0025,0.822,102.753,312360
+1993,10,Informer,Snow,0.895,0.174,0.551,98.71,253267
+1994,1,The Sign,Ace of Base,0.808,0.00928,0.786,96.987,191240
+1994,2,I Swear,All-4-One,0.532,0.235,0.407,83.207,259853
+1994,3,I'll Make Love to You,Boyz II Men,0.567,0.0995,0.501,142.589,236773
+1994,4,The Power of Love,Celine Dion,0.546,0.36,0.519,140.054,342400
+1994,5,Hero,Mariah Carey,0.501,0.735,0.378,119.987,257733
+1994,6,Stay (I Missed You),Lisa Loeb and Nine Stories,0.676,0.479,0.605,80.33,183440
+1994,7,Breathe Again,Toni Braxton,0.689,0.0704,0.677,153.919,269173
+1994,8,All for Love,"Bryan Adams,Rod Stewart and Sting",,,,,
+1994,9,All That She Wants,Ace of Base,0.798,0.00547,0.625,93.764,211213
+1995,1,Gangsta's Paradise,Coolio and L.V.,0.635,0.0665,0.586,79.993,241013
+1995,2,Waterfalls,TLC,0.77,0.311,0.505,171.798,279507
+1995,4,Kiss from a Rose,Seal,0.583,0.684,0.532,131.741,288427
+1995,5,On Bended Knee,Boyz II Men,0.631,0.413,0.516,116.654,329800
+1995,6,Another Night,Real McCoy,0.813,0.0908,0.882,125.983,236933
+1995,7,Fantasy,Mariah Carey,0.669,0.139,0.727,102.322,243493
+1995,8,Take a Bow,Madonna,0.549,0.341,0.408,80.133,320467
+1995,9,Don't Take It Personal (Just One of Dem Days),Monica,0.731,0.00864,0.355,175.72,258467
+1995,10,This Is How We Do It,Montell Jordan,0.799,0.0141,0.623,103.649,238800
+1996,1,Macarena (Bayside Boys Mix),Los del Río,,,,,
+1996,2,One Sweet Day,Mariah Carey and Boyz II Men,0.568,0.353,0.495,128.234,281067
+1996,3,Because You Loved Me,Celine Dion,,,,,
+1996,4,Nobody Knows,The Tony Rich Project,0.64,0.509,0.433,176.086,306933
+1996,5,Always Be My Baby,Mariah Carey,0.65,0.457,0.531,78.946,258133
+1996,6,Give Me One Reason,Tracy Chapman,0.608,0.602,0.419,100.22,268333
+1996,7,Tha Crossroads,Bone Thugs-n-Harmony,0.679,0.0856,0.509,144.29,223547
+1996,8,I Love You Always Forever,Donna Lewis,0.744,0.627,0.453,103.773,239960
+1996,9,You're Makin' Me High / Let It Flow,Toni Braxton,,,,,
+1996,10,Twisted,Keith Sweat,0.615,0.393,0.514,175.849,260667
+1997,1,Candle in the Wind 1997 / Something About the Way You Look Tonight,Elton John,,,,,
+1997,2,You Were Meant for Me / Foolish Games,Jewel,,,,,
+1997,3,I'll Be Missing You,Puff Daddy and Faith Evans and 112,0.862,0.0522,0.479,109.878,301520
+1997,4,Un-Break My Heart,Toni Braxton,0.625,0.413,0.426,110.018,270333
+1997,5,Can't Nobody Hold Me Down,Puff Daddy and Mase,0.928,0.102,0.771,93.987,231160
+1997,6,I Believe I Can Fly,R. Kelly,0.55,0.241,0.444,120.179,320667
+1997,7,Don't Let Go (Love),En Vogue,0.626,0.295,0.693,78.284,291907
+1997,8,Return of the Mack,Mark Morrison,0.715,0.00631,0.833,95.487,213093
+1997,9,How Do I Live,LeAnn Rimes,0.577,0.128,0.462,128.303,266973
+1997,10,Wannabe,Spice Girls,0.768,0.101,0.864,110.009,173027
+1998,1,Too Close,Next,0.847,0.0118,0.402,99.693,259440
+1998,2,The Boy Is Mine,Brandy and Monica,0.702,0.243,0.66,93.022,290467
+1998,3,You're Still the One,Shania Twain,0.585,0.363,0.494,133.822,212200
+1998,4,Truly Madly Deeply,Savage Garden,0.555,0.403,0.698,168.12,277267
+1998,5,How Do I Live,LeAnn Rimes,0.577,0.128,0.462,128.303,266973
+1998,6,Together Again,Janet,,,,,
+1998,7,All My Life,K-Ci & JoJo,0.634,0.114,0.512,128.019,331240
+1998,8,Candle in the Wind 1997 / Something About the Way You Look Tonight,Elton John,,,,,
+1998,9,Nice & Slow,Usher,0.819,0.153,0.299,121.913,227907
+1998,10,I Don't Want to Wait,Paula Cole,0.41,0.298,0.468,177.508,320027
+1999,1,Believe,Cher,0.776,0.0622,0.78,124.949,204347
+1999,2,No Scrubs,TLC,0.743,0.0251,0.675,92.909,214400
+1999,3,Angel of Mine,Monica,0.592,0.00373,0.562,90.16,250173
+1999,4,Heartbreak Hotel,Whitney Houston and Faith Evans and Kelly Price,,,,,
+1999,5,...Baby One More Time,Britney Spears,0.759,0.202,0.699,92.96,211067
+1999,6,Kiss Me,Sixpence None the Richer,0.465,0.839,0.218,129.19,256240
+1999,7,Genie in a Bottle,Christina Aguilera,0.627,0.21,0.8,175.815,217573
+1999,8,Every Morning,Sugar Ray,0.833,0.0834,0.679,109.916,219867
+1999,9,Nobody's Supposed to Be Here,Deborah Cox,0.662,0.202,0.531,119.957,262333
+1999,10,Livin' la Vida Loca,Ricky Martin,0.425,0.00411,0.954,178.043,243160
+2000,1,Breathe,Faith Hill,0.529,0.173,0.496,136.859,250547
+2000,2,Smooth,Santana and Rob Thomas,,,,,
+2000,3,Maria Maria,Santana and The Product G & B,0.777,0.0406,0.601,97.911,261973
+2000,4,I Wanna Know,Joe,0.725,0.26,0.487,136.086,296693
+2000,5,Everything You Want,Vertical Horizon,0.637,0.0504,0.759,93.898,257067
+2000,6,Say My Name,Destiny's Child,0.713,0.273,0.678,138.009,271333
+2000,7,I Knew I Loved You,Savage Garden,0.61,0.32,0.497,85.031,250360
+2000,8,Amazed,Lonestar,0.561,0.26,0.543,139.803,240867
+2000,9,Bent,Matchbox Twenty,0.518,0.0404,0.83,95.468,256133
+2000,10,He Wasn't Man Enough,Toni Braxton,0.739,0.00947,0.947,88.009,261933
+2001,1,Hanging by a Moment,Lifehouse,0.541,0.00118,0.864,124.557,216067
+2001,2,Fallin',Alicia Keys,0.652,0.263,0.609,95.986,210200
+2001,3,All for You,Janet Jackson,0.633,0.0316,0.754,137.047,218707
+2001,4,Drops of Jupiter (Tell Me),Train,0.502,0.114,0.7,79.687,260000
+2001,5,I'm Real (Murder Remix),Jennifer Lopez and Ja Rule,,,,,
+2001,6,If You're Gone,Matchbox Twenty,0.544,0.427,0.659,109.933,274933
+2001,7,Let Me Blow Ya Mind,Eve and Gwen Stefani,0.908,0.242,0.557,90.032,230133
+2001,8,Thank You,Dido,0.722,0.284,0.595,79.98,217827
+2001,9,Again,Lenny Kravitz,0.55,0.0148,0.805,79.168,231667
+2001,10,Independent Women Part I,Destiny's Child,,,,,
+2002,1,How You Remind Me,Nickelback,0.446,0.00135,0.764,172.094,223840
+2002,2,Foolish,Ashanti,0.665,0.347,0.695,90.119,227387
+2002,3,Hot in Herre,Nelly,0.956,0.204,0.741,107.075,228240
+2002,4,Dilemma,Nelly and Kelly Rowland,0.727,0.226,0.552,168.19,289160
+2002,5,Wherever You Will Go,The Calling,0.558,0.0367,0.719,112.027,208600
+2002,6,A Thousand Miles,Vanessa Carlton,0.56,0.323,0.825,94.931,237493
+2002,7,In the End,Linkin Park,0.556,0.00958,0.864,105.143,216880
+2002,8,What's Luv?,Fat Joe and Ashanti,0.835,0.0219,0.707,93.955,267093
+2002,9,U Got It Bad,Usher,0.816,0.0227,0.5,124.037,247840
+2002,10,Blurry,Puddle of Mudd,0.431,0.00805,0.938,157.462,304000
+2003,1,In da Club,50 Cent,0.902,0.26,0.72,90.059,193467
+2003,2,Ignition,R. Kelly,0.795,0.061,0.523,133.024,186067
+2003,3,Get Busy,Sean Paul,0.735,0.615,0.824,100.202,211666
+2003,4,Crazy in Love,Beyoncé and Jay-Z,0.646,0.00249,0.77,99.165,236133
+2003,5,When I'm Gone,3 Doors Down,0.496,0.00457,0.765,74.072,260507
+2003,6,Unwell,Matchbox Twenty,0.435,0.0341,0.781,81.366,234227
+2003,7,Right Thurr,Chingy,0.866,0.15,0.749,92.074,250747
+2003,8,Miss You,Aaliyah,,,,,
+2003,9,Picture,Kid Rock and Sheryl Crow,,,,,
+2003,10,Bring Me to Life,Evanescence and Paul McCoy,0.331,0.00721,0.943,94.612,235893
+2004,1,Yeah!,Usher and Lil Jon and Ludacris,0.894,0.0183,0.791,105.018,250373
+2004,2,Burn,Usher,0.796,0.314,0.477,119.928,231933
+2004,3,If I Ain't Got You,Alicia Keys,0.609,0.603,0.445,118.393,228707
+2004,4,This Love,Maroon 5,0.71,0.0564,0.872,95.057,206373
+2004,5,The Way You Move,OutKast and Sleepy Brown,0.871,0.126,0.597,125.999,234000
+2004,6,The Reason,Hoobastank,0.472,0.0129,0.671,82.952,232800
+2004,7,I Don't Wanna Know,Mario Winans and Enya and P. Diddy,,,,,
+2004,8,Hey Ya!,OutKast,0.727,0.103,0.974,79.526,235213
+2004,9,Goodies,Ciara and Petey Pablo,0.826,0.0277,0.647,102.017,223000
+2004,10,Lean Back,Terror Squad and Fat Joe and Remy Ma,,,,,
+2005,1,We Belong Together,Mariah Carey,0.837,0.0339,0.462,139.986,201400
+2005,2,Hollaback Girl,Gwen Stefani,0.783,0.93,0.779,109.991,192893
+2005,3,Let Me Love You,Mario,0.656,0.235,0.578,94.514,256733
+2005,4,Since U Been Gone,Kelly Clarkson,0.662,0.00165,0.741,131,188960
+2005,5,1 2 Step,Ciara and Missy Elliott,0.944,0.042,0.511,113.046,203787
+2005,6,Gold Digger,Kanye West and Jamie Foxx,,,,,
+2005,7,Boulevard of Broken Dreams,Green Day,0.496,0.00552,0.682,167.06,262333
+2005,8,Candy Shop,50 Cent and Olivia,0.613,0.0253,0.574,125.18,209107
+2005,9,Don't Cha,The Pussycat Dolls and Busta Rhymes,0.877,0.00516,0.637,119.988,272080
+2005,10,Behind These Hazel Eyes,Kelly Clarkson,0.548,0.00165,0.889,90.048,198973
+2006,1,Bad Day,Daniel Powter,0.599,0.448,0.785,140.046,233640
+2006,2,Temperature,Sean Paul,0.951,0.106,0.6,125.04,218573
+2006,3,Promiscuous,Nelly Furtado and Timbaland,,,,,
+2006,4,You're Beautiful,James Blunt,0.675,0.633,0.479,81.998,209493
+2006,5,Hips Don't Lie,Shakira and Wyclef Jean,,,,,
+2006,6,Unwritten,Natasha Bedingfield,0.706,0.00577,0.801,100.013,259333
+2006,7,Crazy,Gnarls Barkley,0.835,0.0172,0.741,111.963,182066
+2006,8,Ridin',Chamillionaire and Krayzie Bone,0.788,0.189,0.798,143.051,303053
+2006,9,SexyBack,Justin Timberlake and Timbaland,0.967,0.0584,0.583,117,242733
+2006,10,Check on It,Beyoncé and Slim Thug and Bun B,0.705,0.0708,0.796,166.042,210453
+2007,1,Irreplaceable,Beyoncé,0.447,0.0293,0.694,175.868,227853
+2007,2,Umbrella,Rihanna and Jay-Z,0.583,0.00864,0.829,174.028,275987
+2007,3,The Sweet Escape,Gwen Stefani and Akon,,,,,
+2007,4,Big Girls Don't Cry,Fergie,0.708,0.205,0.641,113.082,268120
+2007,5,Buy U a Drank (Shawty Snappin'),T-Pain and Yung Joc,,,,,
+2007,6,Before He Cheats,Carrie Underwood,0.519,0.271,0.749,147.905,199947
+2007,7,Hey There Delilah,Plain White T's,0.657,0.872,0.291,103.973,232533
+2007,8,I Wanna Love You,Akon and Snoop Dogg,,,,,
+2007,9,Say It Right,Nelly Furtado,0.871,0.0409,0.869,116.951,223080
+2007,10,Glamorous,Fergie and Ludacris,,,,,
+2008,1,Low,Flo Rida and T-Pain,0.918,0.0928,0.609,128.008,231400
+2008,2,Bleeding Love,Leona Lewis,0.638,0.188,0.656,104.036,262467
+2008,3,No One,Alicia Keys,0.705,0.552,0.339,97.989,236907
+2008,4,Lollipop,Lil Wayne and Static Major,,,,,
+2008,5,Apologize,OneRepublic,,,,,
+2008,6,No Air,Jordin Sparks and Chris Brown,,,,,
+2008,7,Love Song,Sara Bareilles,0.641,0.831,0.355,120.032,148640
+2008,8,Love in This Club,Usher and Young Jeezy,0.573,0.0572,0.712,140.012,259720
+2008,9,With You,Chris Brown,0.662,0.134,0.693,86.009,252120
+2009,1,Boom Boom Pow,The Black Eyed Peas,0.868,0.109,0.86,130.051,241867
+2009,2,Poker Face,Lady Gaga,0.851,0.12,0.806,119.001,237200
+2009,3,Just Dance,Lady Gaga and Colby O'Donis,,,,,
+2009,4,I Gotta Feeling,The Black Eyed Peas,0.744,0.0456,0.775,127.967,244240
+2009,5,Love Story,Taylor Swift,0.618,0.17,0.741,118.984,235267
+2009,6,Right Round,Flo Rida,0.72,0.009,0.672,124.986,204640
+2009,7,I'm Yours,Jason Mraz,0.686,0.595,0.457,150.953,242187
+2009,8,Single Ladies (Put a Ring on It),Beyoncé,0.426,0.0383,0.584,193.437,193213
+2009,9,Heartless,Kanye West,0.79,0.0515,0.647,87.999,211000
+2009,10,Gives You Hell,The All-American Rejects,0.718,0.0159,0.691,100.008,213107
+2010,1,Tik Tok,Kesha,0.755,0.0991,0.837,120.028,199693
+2010,2,Need You Now,Lady Antebellum,0.587,0.0927,0.622,107.943,277573
+2010,3,Hey Soul Sister,Train,0.676,0.217,0.883,97.02,215547
+2010,4,California Gurls,Katy Perry and Snoop Dogg,,,,,
+2010,5,OMG,Usher and will.i.am,0.781,0.198,0.745,129.998,269493
+2010,6,Airplanes,B.o.B and Hayley Williams,0.66,0.11,0.867,93.033,180480
+2010,7,Love the Way You Lie,Eminem and Rihanna,0.749,0.241,0.925,86.989,263373
+2010,8,Bad Romance,Lady Gaga,0.696,0.00314,0.921,119.001,294573
+2010,9,Dynamite,Taio Cruz,0.754,0.00332,0.804,119.968,203867
+2010,10,Break Your Heart,Taio Cruz and Ludacris,,,,,
+2011,1,Rolling in the Deep,Adele,0.73,0.138,0.77,104.948,228093
+2011,2,Party Rock Anthem,LMFAO and Lauren Bennett and GoonRock,0.75,0.0189,0.727,129.993,262173
+2011,3,Firework,Katy Perry,0.638,0.139,0.826,124.072,227880
+2011,4,E.T.,Katy Perry and Kanye West,0.603,0.0213,0.872,150.104,206373
+2011,5,Give Me Everything,"Pitbull and Ne-Yo,Afrojack and Nayer",0.671,0.191,0.939,129.024,252307
+2011,6,Grenade,Bruno Mars,0.706,0.146,0.558,110.443,223253
+2011,7,Fuck You (Forget You),CeeLo Green,,,,,
+2011,8,Super Bass,Nicki Minaj,0.72,0.269,0.861,126.991,200013
+2011,9,Moves like Jagger,Maroon 5 and Christina Aguilera,0.722,0.0111,0.758,128.047,201160
+2011,10,Just Can't Get Enough,The Black Eyed Peas,0.659,0.186,0.628,94.05,219427
+2012,1,Somebody That I Used to Know,Gotye and Kimbra,0.864,0.591,0.495,129.062,244973
+2012,2,Call Me Maybe,Carly Rae Jepsen,0.783,0.0114,0.58,120.021,193400
+2012,3,We Are Young,Fun and Janelle Monáe,0.378,0.02,0.638,184.086,250627
+2012,4,Payphone,Maroon 5 and Wiz Khalifa,0.739,0.0136,0.756,110.028,231387
+2012,5,Lights,Ellie Goulding,0.675,0.0325,0.549,120.047,211987
+2012,6,Glad You Came,The Wanted,0.61,0.056,0.841,126.889,198187
+2012,7,Stronger (What Doesn't Kill You),Kelly Clarkson,0.562,0.046,0.939,116.044,221947
+2012,8,We Found Love,Rihanna and Calvin Harris,0.734,0.025,0.766,127.986,215227
+2012,9,Starships,Nicki Minaj,0.747,0.135,0.716,125.008,210627
+2012,10,What Makes You Beautiful,One Direction,0.726,0.009,0.787,124.989,199987
+2013,1,Thrift Shop,Macklemore & Ryan Lewis and Wanz,,,,,
+2013,2,Blurred Lines,Robin Thicke and T.I. and Pharrell Williams,0.853,0.00334,0.599,119.993,263827
+2013,3,Radioactive,Imagine Dragons,0.448,0.106,0.784,136.245,186813
+2013,4,Harlem Shake,Baauer,0.452,0.0111,0.794,137.825,196664
+2013,5,Can't Hold Us,Macklemore & Ryan Lewis and Ray Dalton,0.641,0.0291,0.922,146.078,258343
+2013,6,Mirrors,Justin Timberlake,0.574,0.234,0.512,76.899,484147
+2013,7,Just Give Me a Reason,Pink and Nate Ruess,0.778,0.346,0.547,95.002,242733
+2013,8,When I Was Your Man,Bruno Mars,0.612,0.932,0.28,72.795,213827
+2013,9,Cruise,Florida Georgia Line and Nelly,0.457,0.0191,0.948,148,208960
+2013,10,Roar,Katy Perry,0.554,0.00487,0.772,179.984,223546
+2014,1,Happy,Pharrell Williams,0.647,0.219,0.822,160.019,232720
+2014,2,Dark Horse,Katy Perry and Juicy J,0.645,0.00314,0.585,131.931,215672
+2014,3,All of Me,John Legend,0.422,0.922,0.264,119.93,269560
+2014,4,Fancy,Iggy Azalea and Charli XCX,,,,,
+2014,5,Counting Stars,OneRepublic,0.663,0.0654,0.706,122.013,257840
+2014,6,Talk Dirty,Jason Derulo and 2 Chainz,,,,,
+2014,7,Rude,Magic!,0.774,0.0423,0.756,144.032,224840
+2014,8,All About That Bass,Meghan Trainor,0.807,0.0573,0.887,134.052,187920
+2014,9,Problem,Ariana Grande and Iggy Azalea,0.66,0.0192,0.805,103.009,193920
+2014,10,Stay with Me,Sam Smith,0.418,0.588,0.42,84.094,172724
+2015,1,Uptown Funk,Mark Ronson and Bruno Mars,0.856,0.00801,0.609,114.988,269667
+2015,2,Thinking Out Loud,Ed Sheeran,0.781,0.474,0.445,78.998,281560
+2015,3,See You Again,Wiz Khalifa and Charlie Puth,0.558,0.371,0.559,78.558,180387
+2015,4,Trap Queen,Fetty Wap,0.746,0.0244,0.873,148.075,222093
+2015,5,Sugar,Maroon 5,0.68,0.0508,0.54,105,253627
+2015,6,Shut Up and Dance,Walk the Moon,0.578,0.00701,0.866,128.038,199080
+2015,7,Blank Space,Taylor Swift,0.76,0.103,0.703,95.997,231827
+2015,8,Watch Me,Silentó,0.821,0.247,0.759,140.01,185143
+2015,9,Earned It,The Weeknd,,,,,
+2016,1,Love Yourself,Justin Bieber,0.609,0.835,0.378,100.418,233720
+2016,3,One Dance,Drake and Wizkid and Kyla,0.792,0.00776,0.625,103.967,173987
+2016,4,Work,Rihanna and Drake,0.725,0.0752,0.534,91.974,219320
+2016,5,Stressed Out,Twenty One Pilots,0.734,0.0462,0.637,169.977,202333
+2016,6,Panda,Desiigner,0.685,0.0292,0.731,145.245,247867
+2016,7,Hello,Adele,0.481,0.336,0.451,157.966,295493
+2016,8,Don't Let Me Down,The Chainsmokers and Daya,0.533,0.156,0.869,159.805,208373
+2016,9,Can't Stop the Feeling!,Justin Timberlake,0.669,0.0106,0.832,113.035,237547
+2016,10,Closer,The Chainsmokers and Halsey,,,,,
+2017,1,Shape of You,Ed Sheeran,0.825,0.581,0.652,95.977,233713
+2017,2,Despacito (Remix),Luis Fonsi and Daddy Yankee and Justin Bieber,0.653,0.228,0.816,178.086,228827
+2017,3,That's What I Like,Bruno Mars,0.853,0.013,0.56,134.066,206693
+2017,4,Humble,Kendrick Lamar,0.908,0.000282,0.621,150.011,177000
+2017,5,Something Just Like This,The Chainsmokers and Coldplay,0.617,0.0498,0.635,103.019,247160
+2017,6,Bad and Boujee,Migos and Lil Uzi Vert,0.926,0.0611,0.666,127.079,343150
+2017,7,Closer,The Chainsmokers and Halsey,,,,,
+2017,8,Body Like a Back Road,Sam Hunt,0.732,0.447,0.458,98.938,165387
+2017,9,Believer,Imagine Dragons,0.776,0.0622,0.78,124.949,204347
+2017,10,Congratulations,Post Malone and Quavo,0.63,0.215,0.804,123.146,220293
+2018,1,God's Plan,Drake,0.754,0.0332,0.449,77.169,198973
+2018,2,Perfect,Ed Sheeran,0.599,0.163,0.448,95.05,263400
+2018,3,Meant to Be,Bebe Rexha and Florida Georgia Line,0.643,0.047,0.783,154.084,163870
+2018,4,Havana,Camila Cabello and Young Thug,0.765,0.184,0.523,104.988,217307
+2018,5,Rockstar,Post Malone and 21 Savage,0.616,0.0459,0.91,144.073,252040
+2018,6,Psycho,Post Malone and Ty Dolla Sign,,,,,
+2018,7,I Like It,"Cardi B,Bad Bunny and J Balvin",0.816,0.099,0.726,136.048,253390
+2018,8,The Middle,"Zedd,Maren Morris and Grey",0.643,0.0371,0.849,162.152,165853
+2018,9,In My Feelings,Drake,0.835,0.0589,0.626,91.03,217925
+2018,10,Girls Like You,Maroon 5 and Cardi B,,,,,
+2019,1,Old Town Road,Lil Nas X and Billy Ray Cyrus,0.878,0.0533,0.619,136.041,157067
+2019,2,Sunflower,Post Malone and Swae Lee,0.76,0.556,0.479,89.911,158040
+2019,3,Without Me,Halsey,0.908,0.00286,0.669,112.238,290320
+2019,4,Bad Guy,Billie Eilish,0.701,0.328,0.425,135.128,194088
+2019,5,Wow,Post Malone,0.829,0.137,0.538,99.952,149547
+2019,6,Happier,Marshmello and Bastille,0.687,0.191,0.792,100.011,214290
+2019,7,7 Rings,Ariana Grande,0.778,0.592,0.317,140.048,178627
+2019,8,Talk,Khalid,0.901,0.051,0.4,135.984,197573
+2019,9,Sicko Mode,Travis Scott,0.834,0.00513,0.73,155.008,312820
+2019,10,Sucker,Jonas Brothers,0.502,0.255,0.786,169.021,243491
+2020,1,Blinding Lights,The Weeknd,0.513,0.00147,0.796,171.017,201573
+2020,2,Circles,Post Malone,0.695,0.189,0.763,120.042,215280
+2020,3,The Box,Roddy Ricch,0.896,0.104,0.586,116.971,196653
+2020,4,Don't Start Now,Dua Lipa,0.793,0.0123,0.793,123.95,183290
+2020,5,Rockstar,DaBaby and Roddy Ricch,,,,,
+2020,6,Adore You,Harry Styles,0.676,0.0237,0.771,99.048,207133
+2020,7,Life Is Good,Future and Drake,0.676,0.0706,0.609,142.037,237735
+2020,8,Memories,Maroon 5,0.775,0.841,0.327,91.05,189486
+2020,9,The Bones,Maren Morris,0.612,0.278,0.57,77.002,197293
+2020,10,Someone You Loved,Lewis Capaldi,0.708,0.756,0.416,109.87,179840
